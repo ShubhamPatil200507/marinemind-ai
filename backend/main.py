@@ -54,8 +54,22 @@ async def health_check():
         ]
     }
 
-# Mount and serve built frontend SPA
-frontend_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+# Mount and serve built frontend SPA across local, container, and Render environments
+def find_frontend_dist() -> str:
+    candidates = [
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "frontend", "dist"),
+        os.path.join(os.getcwd(), "frontend", "dist"),
+        os.path.join(os.getcwd(), "dist"),
+        os.path.abspath("frontend/dist"),
+        "/app/frontend/dist"
+    ]
+    for c in candidates:
+        if os.path.exists(os.path.join(c, "index.html")):
+            print(f"[MarineMind AI] Serving frontend SPA from: {c}")
+            return c
+    return candidates[0]
+
+frontend_dist = find_frontend_dist()
 assets_dir = os.path.join(frontend_dist, "assets")
 
 if os.path.exists(assets_dir):
@@ -63,9 +77,11 @@ if os.path.exists(assets_dir):
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
+    # Check if specific static file exists in dist
     file_path = os.path.join(frontend_dist, full_path)
     if full_path and os.path.isfile(file_path):
         return FileResponse(file_path)
+    # Return index.html for root and SPA routes
     index_path = os.path.join(frontend_dist, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
@@ -74,7 +90,8 @@ async def serve_spa(full_path: str):
         "tagline": "An Agentic AI Copilot for Safer, Smarter and Sustainable Marine Decision-Making",
         "status": "online",
         "version": "1.1.0",
-        "docs_url": "/docs"
+        "docs_url": "/docs",
+        "notice": "Frontend dist is building or missing index.html."
     }
 
 if __name__ == "__main__":

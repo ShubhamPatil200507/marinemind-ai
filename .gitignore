@@ -10,7 +10,6 @@ venv/
 
 # Node / Frontend
 **/node_modules/
-**/dist/
 *.local
 npm-debug.log*
 yarn-debug.log*
