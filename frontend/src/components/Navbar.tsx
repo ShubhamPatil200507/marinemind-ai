@@ -2,7 +2,7 @@
 import React from 'react';
 import {
   Compass, Anchor, ShieldAlert, Navigation, Bell,
-  BarChart3, Globe, AlertTriangle, Radio, ShieldCheck, MapPin
+  BarChart3, Globe, AlertTriangle, Radio, ShieldCheck, MapPin, ChevronDown
 } from 'lucide-react';
 import { getTranslation } from '../services/i18n';
 
@@ -32,36 +32,34 @@ export const Navbar: React.FC<NavbarProps> = ({
   const t = getTranslation(selectedLanguage);
 
   const navItems = [
-    { id: 'dashboard', label: t.nav.dashboard, icon: Compass },
-    { id: 'copilot', label: t.nav.copilot, icon: Navigation },
-    { id: 'pfz', label: t.nav.pfz, icon: Anchor },
-    { id: 'risk', label: t.nav.risk, icon: ShieldAlert },
-    { id: 'routes', label: t.nav.routes, icon: MapPin },
-    { id: 'geofence', label: t.nav.geofence, icon: ShieldCheck },
-    { id: 'alerts', label: t.nav.alerts, icon: Bell },
-    { id: 'analytics', label: t.nav.analytics, icon: BarChart3 }
+    { id: 'dashboard', label: t.nav.dashboard, shortLabel: 'Ops', icon: Compass },
+    { id: 'copilot', label: t.nav.copilot, shortLabel: 'Copilot', icon: Navigation },
+    { id: 'pfz', label: t.nav.pfz, shortLabel: 'PFZ', icon: Anchor },
+    { id: 'risk', label: t.nav.risk, shortLabel: 'Risk', icon: ShieldAlert },
+    { id: 'routes', label: t.nav.routes, shortLabel: 'Routes', icon: MapPin },
+    { id: 'geofence', label: t.nav.geofence, shortLabel: 'Bounds', icon: ShieldCheck },
+    { id: 'alerts', label: t.nav.alerts, shortLabel: 'Alerts', icon: Bell },
+    { id: 'analytics', label: t.nav.analytics, shortLabel: 'Ocean', icon: BarChart3 }
   ];
 
   return (
     <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-[100] shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-14 gap-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6">
+        <div className="flex items-center justify-between h-14 gap-1.5 sm:gap-2 w-full">
           {/* Logo & Product Title */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs shrink-0">
               <Compass className="w-4 h-4" />
             </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-sm tracking-tight text-white whitespace-nowrap">
-                MarineMind AI
-              </span>
-              <span className="text-[11px] text-slate-400 hidden 2xl:inline-block whitespace-nowrap">
-                • Fishery & Sea Safety
-              </span>
-            </div>
+            <span className="font-bold text-sm tracking-tight text-white whitespace-nowrap hidden sm:inline">
+              MarineMind AI
+            </span>
+            <span className="font-bold text-xs tracking-tight text-white whitespace-nowrap sm:hidden">
+              MarineMind
+            </span>
           </div>
 
-          {/* Navigation Tabs (Responsive & strictly bounded to container width) */}
+          {/* Navigation Tabs (Responsive & strictly bounded within max-w-7xl) */}
           <nav className="hidden lg:flex items-center gap-0.5 bg-slate-800/80 p-1 rounded-lg border border-slate-700/60 shrink-0">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -78,20 +76,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }`}
                 >
                   <Icon className="w-3.5 h-3.5 shrink-0" />
-                  <span className="leading-none hidden xl:inline">{item.label}</span>
-                  <span className="leading-none xl:hidden">{isActive ? item.label : ''}</span>
+                  <span className={`leading-none ${isActive ? 'inline' : 'hidden xl:inline'}`}>
+                    {isActive ? item.label : item.shortLabel}
+                  </span>
                 </button>
               );
             })}
           </nav>
 
-          {/* Controls: Location, Mode, Language, Notice (Exact matching heights: h-8) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+          {/* Controls: Location, Mode, Language, Notice (Exact matching heights: h-8, perfectly aligned with page layout) */}
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Location Button */}
             <button
               onClick={onOpenLocationModal}
               title="Set Vessel Location & Operating Sector"
-              className="h-8 px-2 sm:px-2.5 inline-flex items-center justify-center gap-1 sm:gap-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium transition-colors shrink-0 max-w-[85px] sm:max-w-[130px] xl:max-w-[170px]"
+              className="h-8 px-1.5 sm:px-2.5 inline-flex items-center justify-center gap-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium transition-colors shrink-0 max-w-[65px] sm:max-w-[130px] xl:max-w-[150px]"
             >
               <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0" />
               <span className="truncate leading-none">
@@ -110,22 +109,24 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <Radio className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden xl:inline leading-none">{isDemoMode ? 'Simulated' : 'Live Stream'}</span>
+              <span className="hidden sm:inline leading-none">{isDemoMode ? 'Simulated' : 'Live'}</span>
             </button>
 
-            {/* Language Select (Aligned height & baseline) */}
-            <div className="h-8 inline-flex items-center bg-slate-800 border border-slate-700 rounded-lg px-1.5 sm:px-2 text-xs shrink-0">
-              <Globe className="w-3.5 h-3.5 text-slate-400 mr-1 shrink-0 hidden xs:inline" />
+            {/* Language Select (Unified pill matching other controls) */}
+            <div className="relative h-8 inline-flex items-center bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-slate-600 rounded-lg text-xs transition-colors shrink-0 group">
+              <Globe className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-400 ml-1.5 sm:ml-2 mr-1 shrink-0 pointer-events-none transition-colors" />
               <select
                 value={selectedLanguage}
                 onChange={(e) => setSelectedLanguage(e.target.value)}
-                className="bg-transparent text-slate-200 text-xs focus:outline-none cursor-pointer leading-none py-0 m-0 border-0 pr-1"
+                aria-label="Select Language"
+                className="bg-transparent text-slate-200 font-medium text-xs focus:outline-none cursor-pointer leading-none py-0 pl-0 pr-5 border-0 appearance-none h-full"
               >
                 <option value="en" className="bg-slate-900 text-white">English</option>
                 <option value="hi" className="bg-slate-900 text-white">हिन्दी</option>
                 <option value="mr" className="bg-slate-900 text-white">मराठी</option>
                 <option value="ta" className="bg-slate-900 text-white">தமிழ்</option>
               </select>
+              <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-white absolute right-1.5 pointer-events-none transition-colors" />
             </div>
 
             {/* Advisory Warning Modal Trigger */}
