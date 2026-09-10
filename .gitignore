@@ -28,3 +28,6 @@ Thumbs.db
 # Archives
 *.zip
 *.tar.gz
+
+# Cloudflare Tunnel
+cloudflared.exe

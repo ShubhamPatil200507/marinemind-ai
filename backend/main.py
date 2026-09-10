@@ -3,6 +3,8 @@ import os
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from backend.models.database import init_db
 from backend.api import chat, marine, weather, pfz, routes, geofence, alerts, scenarios, auth, reports
 
@@ -38,16 +40,6 @@ app.include_router(alerts.router)
 app.include_router(scenarios.router)
 app.include_router(reports.router)
 
-@app.get("/")
-async def root():
-    return {
-        "platform": "MarineMind AI (ORCA)",
-        "tagline": "An Agentic AI Copilot for Safer, Smarter and Sustainable Marine Decision-Making",
-        "status": "online",
-        "version": "1.1.0",
-        "docs_url": "/docs"
-    }
-
 @app.get("/api/health")
 async def health_check():
     return {
@@ -60,6 +52,29 @@ async def health_check():
             "geospatial_agent", "risk_agent", "route_agent",
             "explainability_agent"
         ]
+    }
+
+# Mount and serve built frontend SPA
+frontend_dist = os.path.join(os.path.dirname(os.path.dirname(__file__)), "frontend", "dist")
+assets_dir = os.path.join(frontend_dist, "assets")
+
+if os.path.exists(assets_dir):
+    app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+@app.get("/{full_path:path}")
+async def serve_spa(full_path: str):
+    file_path = os.path.join(frontend_dist, full_path)
+    if full_path and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    index_path = os.path.join(frontend_dist, "index.html")
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    return {
+        "platform": "MarineMind AI (ORCA)",
+        "tagline": "An Agentic AI Copilot for Safer, Smarter and Sustainable Marine Decision-Making",
+        "status": "online",
+        "version": "1.1.0",
+        "docs_url": "/docs"
     }
 
 if __name__ == "__main__":

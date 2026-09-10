@@ -199,7 +199,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
           {currentResponse?.conversation_id && (
             <button
               type="button"
-              onClick={() => window.open(`http://127.0.0.1:8000/api/reports/voyage/${currentResponse.conversation_id}`, '_blank')}
+              onClick={() => window.open(`/api/reports/voyage/${currentResponse.conversation_id}`, '_blank')}
               title="View Official Voyage Clearance Manifest"
               className="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-1 rounded border border-blue-200 text-[10px] font-semibold transition-colors cursor-pointer"
             >
