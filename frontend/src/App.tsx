@@ -255,7 +255,7 @@ export function App() {
     }
   };
 
-  // Trigger Hackathon Demo Scenario
+  // Trigger Operational Demo Scenario
   const handleTriggerScenario = async (scenarioId: string) => {
     setIsLoadingChat(true);
     setActiveTab('copilot'); // Switch directly to Copilot & Map view

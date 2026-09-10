@@ -4,17 +4,17 @@ from backend.data.seed_data import DEMO_SCENARIOS, DEFAULT_VESSEL_LOCATION
 from backend.agents.orchestrator import Orchestrator
 from backend.models.schemas import UserQuery
 
-router = APIRouter(prefix="/api/scenarios", tags=["Hackathon Demo Scenarios"])
+router = APIRouter(prefix="/api/scenarios", tags=["Operational Demo Scenarios"])
 orchestrator = Orchestrator()
 
 @router.get("")
 async def list_demo_scenarios():
-    """Lists the 4 verified hackathon demo scenarios."""
+    """Lists the 4 verified operational demo scenarios."""
     return DEMO_SCENARIOS
 
 @router.post("/{scenario_id}/trigger")
 async def trigger_scenario(scenario_id: str, language: str = "en"):
-    """Triggers autonomous execution of one of the 4 hackathon demo scenarios with localization support."""
+    """Triggers autonomous execution of one of the 4 operational demo scenarios with localization support."""
     scenarios_dict = {s["id"]: s for s in DEMO_SCENARIOS}
     target_scenario = scenarios_dict.get(scenario_id)
     if not target_scenario:

@@ -1,18 +1,17 @@
 version: '3.8'
 
 services:
-  marinemind-db:
-    image: postgis/postgis:16-3.4
-    container_name: marinemind_postgis
-    environment:
-      POSTGRES_DB: marinemind
-      POSTGRES_USER: marine_admin
-      POSTGRES_PASSWORD: marine_secure_password_2026
+  marinemind-backend:
+    build: .
+    container_name: marinemind-backend
     ports:
-      - "5432:5432"
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - DATABASE_URL=sqlite:///./marinemind.db
+      - JWT_SECRET=marinemind-ai-orca-secure-jwt-secret-key-2024
+      # Optional free Google Gemini key
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     volumes:
-      - postgis_data:/var/lib/postgresql/data
+      - ./marinemind.db:/app/marinemind.db
     restart: unless-stopped
-
-volumes:
-  postgis_data:

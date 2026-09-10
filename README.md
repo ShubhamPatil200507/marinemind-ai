@@ -35,7 +35,7 @@ The marine ecosystem directly sustains over 4 million Indian fishermen, food sec
 3. **Interactive Geospatial Map (Leaflet)**:
    - Live vessel GPS marker with heading telemetry.
    - Toggable layers: PFZ Hotspots, SST Thermal Fronts, Chlorophyll Blooms, High Swell Hazards, IMBL Boundaries, Naval Firing Ranges, and Safe Routes.
-4. **Presentation-Ready Hackathon Demo Scenarios**:
+4. **Presentation-Ready Operational Demo Scenarios**:
    - **Scenario 1: Safe Fishing Decision** (Morning safe window 06:00-10:00 vs afternoon 2.6m swell surge).
    - **Scenario 2: PFZ Multi-Criteria Recommendation** (Explains why closer PFZ Bravo at 6.1 km is avoided due to hazardous waves, recommending PFZ Alpha at 8.2 km).
    - **Scenario 3: Safe Route Planning** (Direct Route A 12 km flagged HIGH RISK vs Safe Detour Route B 16 km flagged RECOMMENDED).
@@ -71,7 +71,7 @@ marinemind-ai/
        routes.py              # Safe path navigation
        geofence.py            # Boundary auditing
        alerts.py              # Coastal bulletins
-       scenarios.py           # Hackathon demo triggers
+       scenarios.py           # Operational demo triggers
     agents/                    # Multi-agent implementations
        orchestrator.py        # Central multi-agent coordinator
        planner_agent.py       # Autonomous intent & dynamic planner
@@ -150,7 +150,7 @@ npm run dev
 
 ---
 
-##  Hackathon Demonstration Scenarios
+##  Operational Demonstration Scenarios
 
 1. **Scenario 1: Safe Fishing Decision**
    - Click *Scenario 1* on the Dashboard.
@@ -179,7 +179,7 @@ npm run dev
 
 ---
 
-##  Smart India Hackathon Innovation Highlights
+##  Enterprise Innovation Highlights
 - **No hardcoded chat answers**: Dynamic planner determines which agents to run for every query.
 - **Explainable by design**: Every single recommendation provides explicit, verifiable "Why?" rationale.
-- **Dual-mode architecture**: Runs out-of-the-box in Hackathon Demo Mode without requiring paid external API credentials, and seamlessly connects to live satellite/weather feeds when API keys are configured.
+- **Dual-mode architecture**: Runs out-of-the-box in Interactive Demo Mode without requiring paid external API credentials, and seamlessly connects to live satellite/weather feeds when API keys are configured.
