@@ -9,6 +9,11 @@ class User(Base):
     __tablename__ = 'users'
     id = Column(String, primary_key=True, index=True)
     name = Column(String, default='Captain')
+    vessel_id = Column(String, unique=True, index=True, nullable=True)
+    phone = Column(String, unique=True, index=True, nullable=True)
+    home_port = Column(String, default='Mumbai (Sassoon Docks)')
+    hashed_password = Column(String, nullable=True)
+    salt = Column(String, nullable=True)
     preferred_language = Column(String, default='en')
     user_type = Column(String, default='fisherman')  # fisherman, cooperative, coastal_authority, researcher
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
