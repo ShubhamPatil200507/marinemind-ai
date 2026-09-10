@@ -87,7 +87,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
   const t = getTranslation(selectedLanguage);
   const [latInput, setLatInput] = useState(currentLocation.latitude.toString());
   const [lonInput, setLonInput] = useState(currentLocation.longitude.toString());
-  const [nameInput, setNameInput] = useState(currentLocation.name || 'Custom Vessel Waypoint');
+  const [nameInput, setNameInput] = useState(currentLocation.name || t.map.custom_waypoint);
   const [isLocating, setIsLocating] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
 
@@ -179,10 +179,10 @@ export const LocationModal: React.FC<LocationModalProps> = ({
             </div>
             <div>
               <h2 className="font-bold text-sm text-slate-900 tracking-tight">
-                Set Vessel Position & Maritime Sector
+                {t.locationModal.title}
               </h2>
               <p className="text-[11px] text-slate-500">
-                Current: {currentLocation.name || 'Custom Waypoint'} ({currentLocation.latitude.toFixed(4)}°N, {currentLocation.longitude.toFixed(4)}°E)
+                {t.locationModal.current_label} {currentLocation.name || t.map.custom_waypoint} ({currentLocation.latitude.toFixed(4)}°N, {currentLocation.longitude.toFixed(4)}°E)
               </p>
             </div>
           </div>
@@ -207,10 +207,10 @@ export const LocationModal: React.FC<LocationModalProps> = ({
           <div>
             <div className="font-bold text-xs text-blue-900 flex items-center gap-1.5">
               <Navigation className="w-3.5 h-3.5 text-blue-600" />
-              <span>Use My Device GPS Position</span>
+              <span>{t.locationModal.use_device_gps}</span>
             </div>
             <p className="text-[11px] text-blue-700 mt-0.5">
-              Detects your real-time latitude & longitude via HTML5 browser geolocation.
+              {t.locationModal.device_gps_desc}
             </p>
           </div>
           <button
@@ -221,12 +221,12 @@ export const LocationModal: React.FC<LocationModalProps> = ({
             {isLocating ? (
               <>
                 <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Acquiring Lock...</span>
+                <span>{t.locationModal.acquiring_lock}</span>
               </>
             ) : (
               <>
                 <Crosshair className="w-3.5 h-3.5" />
-                <span>Acquire GPS Location</span>
+                <span>{t.locationModal.acquire_gps}</span>
               </>
             )}
           </button>
@@ -236,9 +236,9 @@ export const LocationModal: React.FC<LocationModalProps> = ({
         <div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700 font-mono">
-              Major Indian Fishing Harbors & Coastal Bases
+              {t.locationModal.harbors_heading}
             </span>
-            <span className="text-[10px] text-slate-400">Click to deploy</span>
+            <span className="text-[10px] text-slate-400">{t.locationModal.click_to_deploy}</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -276,7 +276,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
         {/* Option 3: Manual Decimal Coordinates Entry */}
         <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
           <div className="text-[11px] font-bold uppercase tracking-wider text-slate-700 font-mono mb-2">
-            Manual Coordinate & Name Entry
+            {t.locationModal.manual_heading}
           </div>
 
           <form onSubmit={handleApplyManual} className="space-y-3">
@@ -313,7 +313,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
 
               <div>
                 <label className="block text-[10px] font-mono text-slate-500 uppercase mb-1">
-                  Vessel / Sector Label
+                  {t.locationModal.sector_label}
                 </label>
                 <input
                   type="text"
@@ -327,7 +327,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-1">
               <span className="text-[11px] text-slate-500">
-                Tip: You can also click anywhere on the nautical map in the Copilot view to relocate your vessel.
+                {t.locationModal.reposition_tip}
               </span>
               <button
                 type="submit"

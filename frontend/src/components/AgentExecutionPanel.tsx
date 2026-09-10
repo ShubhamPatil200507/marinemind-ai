@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import type { ExecutionPlan, EvidenceItem } from '../types/marine';
 import {
   CheckCircle2, ChevronDown, ChevronUp, Cpu,
-  Database, Sparkles, ShieldAlert, CloudSun,
-  Compass, Anchor, Clock
+  Database, ShieldAlert, CloudSun,
+  Compass, Anchor
 } from 'lucide-react';
+import { getTranslation } from '../services/i18n';
 
 interface AgentExecutionPanelProps {
   plan?: ExecutionPlan;
@@ -18,6 +19,7 @@ interface AgentExecutionPanelProps {
   evidence?: EvidenceItem[];
   confidence?: number;
   isExecuting?: boolean;
+  selectedLanguage?: string;
 }
 
 export const AgentExecutionPanel: React.FC<AgentExecutionPanelProps> = ({
@@ -25,9 +27,11 @@ export const AgentExecutionPanel: React.FC<AgentExecutionPanelProps> = ({
   agentStatuses = [],
   evidence = [],
   confidence = 0.88,
-  isExecuting = false
+  isExecuting = false,
+  selectedLanguage = 'en'
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false); // Collapsed by default to avoid text heaviness
+  const t = getTranslation(selectedLanguage);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [activeTab, setActiveTab] = useState<'agents' | 'plan' | 'evidence'>('agents');
 
   if (!plan && agentStatuses.length === 0 && !isExecuting) {
@@ -56,9 +60,9 @@ export const AgentExecutionPanel: React.FC<AgentExecutionPanelProps> = ({
           </div>
           <div>
             <div className="font-bold text-slate-900 flex items-center gap-1.5">
-              <span>Multi-Source Intelligence Verification</span>
+              <span>{t.executionPanel.title}</span>
               <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-white text-slate-700 border border-slate-300 font-semibold">
-                {plan?.execution_strategy === 'parallel' ? 'Multi-Source Fusion' : 'Coordinated Advisory'}
+                {plan?.execution_strategy === 'parallel' ? t.executionPanel.fusion_badge : t.executionPanel.advisory_badge}
               </span>
             </div>
           </div>
@@ -66,7 +70,7 @@ export const AgentExecutionPanel: React.FC<AgentExecutionPanelProps> = ({
 
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-mono text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-            {Math.round(confidence * 100)}% Confidence
+            {Math.round(confidence * 100)}% {t.executionPanel.confidence_suffix}
           </span>
           <button className="text-slate-400 hover:text-slate-600">
             {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -87,7 +91,7 @@ export const AgentExecutionPanel: React.FC<AgentExecutionPanelProps> = ({
         ))}
         {agentStatuses.length > 5 && (
           <span className="text-[10px] text-slate-500 font-medium px-1">
-            +{agentStatuses.length - 5} more
+            +{agentStatuses.length - 5} {t.executionPanel.more_suffix}
           </span>
         )}
       </div>
@@ -103,7 +107,7 @@ export const AgentExecutionPanel: React.FC<AgentExecutionPanelProps> = ({
                 activeTab === 'agents' ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              Agents ({agentStatuses.length})
+              {t.executionPanel.tab_agents} ({agentStatuses.length})
             </button>
             <button
               onClick={() => setActiveTab('plan')}
@@ -111,7 +115,7 @@ export const AgentExecutionPanel: React.FC<AgentExecutionPanelProps> = ({
                 activeTab === 'plan' ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              Plan ({plan?.steps.length || 0})
+              {t.executionPanel.tab_plan} ({plan?.steps.length || 0})
             </button>
             <button
               onClick={() => setActiveTab('evidence')}
@@ -119,7 +123,7 @@ export const AgentExecutionPanel: React.FC<AgentExecutionPanelProps> = ({
                 activeTab === 'evidence' ? 'bg-blue-50 text-blue-700 font-bold' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
-              Evidence ({evidence.length})
+              {t.executionPanel.tab_evidence} ({evidence.length})
             </button>
           </div>
 
@@ -147,7 +151,7 @@ export const AgentExecutionPanel: React.FC<AgentExecutionPanelProps> = ({
           {activeTab === 'plan' && plan && (
             <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
               <div className="text-[11px] font-mono text-slate-500">
-                Intent Identified: <strong className="text-slate-800">{plan.intent}</strong>
+                {t.executionPanel.intent_identified} <strong className="text-slate-800">{plan.intent}</strong>
               </div>
               {plan.steps.map((step, idx) => (
                 <div key={idx} className="p-2 rounded bg-slate-50 border border-slate-200 flex items-start gap-2 text-[11px]">
@@ -169,8 +173,8 @@ export const AgentExecutionPanel: React.FC<AgentExecutionPanelProps> = ({
               {evidence.map((ev, idx) => (
                 <div key={idx} className="p-2 rounded bg-slate-50 border border-slate-200 text-[11px]">
                   <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono">
-                    <span>Source: {ev.source_agent}</span>
-                    <span>Confidence: {Math.round(ev.confidence * 100)}%</span>
+                    <span>{t.executionPanel.source} {ev.source_agent}</span>
+                    <span>{t.common.confidence}: {Math.round(ev.confidence * 100)}%</span>
                   </div>
                   <div className="font-semibold text-slate-800 mt-0.5">{ev.claim}</div>
                 </div>

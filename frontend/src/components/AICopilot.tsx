@@ -101,7 +101,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
       const errMsg: Message = {
         id: `err-${Date.now()}`,
         sender: 'assistant',
-        text: 'Consultation service temporarily unavailable. Please retry your request.',
+        text: t.copilot.service_unavailable,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages((prev) => [...prev, errMsg]);
@@ -117,19 +117,19 @@ export const AICopilot: React.FC<AICopilotProps> = ({
             <span className="leading-none">{t.copilot.title}</span>
             <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 leading-none">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-              <span>Online</span>
+              <span>{t.copilot.online_status}</span>
             </span>
           </div>
           <button
             type="button"
             onClick={onOpenLocationModal}
-            title="Click to change vessel location, select coastal harbor, or use device GPS"
+            title={t.copilot.change_location_tooltip}
             className="text-[11px] font-mono text-slate-600 hover:text-blue-700 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-md px-2 py-1 flex items-center gap-1.5 mt-1.5 transition-all cursor-pointer group shadow-2xs text-left max-w-full"
           >
             <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0 group-hover:scale-110 transition-transform" />
-            <span className="font-semibold text-slate-800 truncate">{vesselLocation.name ? vesselLocation.name.split('(')[0].trim() : 'Current Sector'}:</span>
+            <span className="font-semibold text-slate-800 truncate">{vesselLocation.name ? vesselLocation.name.split('(')[0].trim() : t.copilot.current_sector}:</span>
             <span className="text-slate-600 hidden sm:inline">{vesselLocation.latitude.toFixed(2)}°N, {vesselLocation.longitude.toFixed(2)}°E</span>
-            <span className="text-[10px] text-blue-600 font-sans font-semibold underline group-hover:no-underline ml-0.5 shrink-0">Change</span>
+            <span className="text-[10px] text-blue-600 font-sans font-semibold underline group-hover:no-underline ml-0.5 shrink-0">{t.common.change}</span>
           </button>
         </div>
 
@@ -157,7 +157,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
               <div className={`flex items-center justify-between gap-2 mb-1.5 pb-1 border-b text-[10px] font-mono ${
                 msg.sender === 'user' ? 'border-blue-500/60 text-blue-100' : 'border-slate-100 text-slate-400'
               }`}>
-                <span>{msg.sender === 'user' ? (t.copilot.operator || 'Operator') : 'MarineMind AI'}</span>
+                <span>{msg.sender === 'user' ? t.copilot.operator : 'MarineMind AI'}</span>
                 <span>{msg.timestamp}</span>
               </div>
 
@@ -181,7 +181,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
                       {msg.responsePayload.action_recommendation}
                     </div>
                     <div className="text-[10px] font-mono mt-0.5">
-                      {t.copilot.risk_index || 'Risk Index'}: {msg.responsePayload.risk_score}/100 ({msg.responsePayload.risk_level}) | {t.copilot.confidence || 'Advisory Confidence'}: {Math.round(msg.responsePayload.confidence * 100)}%
+                      {t.copilot.risk_index}: {msg.responsePayload.risk_score}/100 ({msg.responsePayload.risk_level}) | {t.copilot.confidence}: {Math.round(msg.responsePayload.confidence * 100)}%
                     </div>
                   </div>
 
@@ -190,7 +190,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
                     <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-[11px]">
                       <div className="font-bold text-slate-700 mb-1 flex items-center gap-1.5">
                         <Clock className="w-3 h-3 text-blue-600" />
-                        <span>{t.copilot.key_factors || t.copilot.rationale_title || 'Key Assessment Factors:'}</span>
+                        <span>{t.copilot.key_factors}</span>
                       </div>
                       <ul className="space-y-1 text-slate-600">
                         {msg.responsePayload.explainability.why_bullets.slice(0, 3).map((bullet, idx) => (
@@ -209,6 +209,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
                     agentStatuses={msg.responsePayload.agent_statuses}
                     evidence={msg.responsePayload.evidence}
                     confidence={msg.responsePayload.confidence}
+                    selectedLanguage={selectedLanguage}
                   />
 
                   {/* Quick Action Shortcuts */}
@@ -219,7 +220,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
                         className="px-2.5 py-1 rounded bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-[11px] font-semibold flex items-center gap-1 transition-colors"
                       >
                         <Anchor className="w-3 h-3" />
-                        <span>{t.copilot.focus_map || 'Focus PFZ Alpha on Map'}</span>
+                        <span>{t.copilot.focus_map}</span>
                       </button>
                     </div>
                   )}
@@ -270,9 +271,9 @@ export const AICopilot: React.FC<AICopilotProps> = ({
             type="button"
             onClick={() => {
               setIsVoiceActive(!isVoiceActive);
-              if (!isVoiceActive) setInputQuery(suggestedQuestions[0] || 'Is it safe to go fishing tomorrow morning?');
+              if (!isVoiceActive) setInputQuery(suggestedQuestions[0] || t.copilot.inquiries[0]);
             }}
-            title={isVoiceActive ? 'Listening' : 'Voice Input'}
+            title={isVoiceActive ? t.copilot.listening : t.copilot.voice_input}
             className={`h-9 w-9 rounded-lg border transition-colors inline-flex items-center justify-center shrink-0 ${
               isVoiceActive
                 ? 'bg-rose-50 text-rose-700 border-rose-300'
@@ -285,7 +286,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
           <button
             type="button"
             onClick={onOpenLocationModal}
-            title="Set Location (Device GPS / Coastal Harbors / Coordinates)"
+            title={t.copilot.set_location_tooltip}
             className="h-9 w-9 rounded-lg border bg-slate-50 text-slate-500 border-slate-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 transition-colors inline-flex items-center justify-center shrink-0 cursor-pointer"
           >
             <MapPin className="w-4 h-4" />

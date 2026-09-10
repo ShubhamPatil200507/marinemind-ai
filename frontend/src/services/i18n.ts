@@ -22,6 +22,10 @@ export interface TranslationSchema {
     m: string;
     knots: string;
     depth_unit: string;
+    telemetry: string;
+    satellite_stream: string;
+    cancel: string;
+    source: string;
   };
   nav: {
     dashboard: string;
@@ -63,6 +67,13 @@ export interface TranslationSchema {
     risk_index: string;
     confidence: string;
     operator: string;
+    online_status: string;
+    service_unavailable: string;
+    listening: string;
+    voice_input: string;
+    change_location_tooltip: string;
+    current_sector: string;
+    set_location_tooltip: string;
   };
   dashboard: {
     sector: string;
@@ -122,6 +133,30 @@ export interface TranslationSchema {
     layer_borders: string;
     layer_routes: string;
     layer_fairways: string;
+    chart_layers: string;
+    toggle_layers_tooltip: string;
+    popup_vessel_telemetry: string;
+    popup_location: string;
+    popup_current_position: string;
+    popup_coordinates: string;
+    popup_heading: string;
+    popup_status: string;
+    popup_distance: string;
+    popup_productivity: string;
+    popup_sst: string;
+    popup_chla: string;
+    popup_wave_risk: string;
+    popup_risk_score: string;
+    popup_rec_route: string;
+    popup_avoid_route: string;
+    popup_imbl: string;
+    popup_hazard_zone: string;
+    popup_hazard_desc: string;
+    popup_thermal_front: string;
+    reposition_pin_hint: string;
+    reposition_toast: string;
+    custom_waypoint: string;
+    set_pin_tooltip: string;
   };
   pfz: {
     title: string;
@@ -229,6 +264,12 @@ export interface TranslationSchema {
     correlation_desc: string;
     optimal_range: string;
     bloom_status: string;
+    mean_label: string;
+    surface: string;
+    shelf: string;
+    mid_water: string;
+    deep: string;
+    benthic: string;
   };
   locationModal: {
     title: string;
@@ -240,6 +281,17 @@ export interface TranslationSchema {
     heading: string;
     cancel: string;
     save: string;
+    current_label: string;
+    use_device_gps: string;
+    device_gps_desc: string;
+    acquiring_lock: string;
+    acquire_gps: string;
+    harbors_heading: string;
+    click_to_deploy: string;
+    manual_heading: string;
+    sector_label: string;
+    reposition_tip: string;
+    apply_coords: string;
   };
   noticeModal: {
     title: string;
@@ -254,6 +306,18 @@ export interface TranslationSchema {
     mode: string;
     prototype_edition: string;
     statutory_notice: string;
+  };
+  executionPanel: {
+    title: string;
+    fusion_badge: string;
+    advisory_badge: string;
+    confidence_suffix: string;
+    more_suffix: string;
+    tab_agents: string;
+    tab_plan: string;
+    tab_evidence: string;
+    intent_identified: string;
+    source: string;
   };
   auth: {
     welcome_title: string;
@@ -286,6 +350,13 @@ export interface TranslationSchema {
     feature_satellite_desc: string;
     feature_imbl_title: string;
     feature_imbl_desc: string;
+    eval_badge: string;
+    or_divider: string;
+    authenticating: string;
+    mopsw_badge: string;
+    one_click: string;
+    footer_left: string;
+    footer_right: string;
   };
 }
 
@@ -309,7 +380,11 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       km: 'km',
       m: 'm',
       knots: 'kts',
-      depth_unit: 'm'
+      depth_unit: 'm',
+      telemetry: 'Telemetry',
+      satellite_stream: 'Satellite Stream',
+      cancel: 'Cancel',
+      source: 'Source'
     },
     nav: {
       dashboard: 'Operations',
@@ -355,7 +430,14 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       focus_map: 'Focus PFZ Alpha on Map',
       risk_index: 'Risk Index',
       confidence: 'Confidence',
-      operator: 'Operator'
+      operator: 'Operator',
+      online_status: 'Online',
+      service_unavailable: 'Consultation service temporarily unavailable. Please retry your request.',
+      listening: 'Listening',
+      voice_input: 'Voice Input',
+      change_location_tooltip: 'Click to change vessel location, select coastal harbor, or use device GPS',
+      current_sector: 'Current Sector',
+      set_location_tooltip: 'Set Location (Device GPS / Coastal Harbors / Coordinates)'
     },
     dashboard: {
       sector: 'OPERATIONAL SECTOR: ARABIAN SEA',
@@ -548,7 +630,19 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       prototype_edition: 'MarineMind AI Enterprise Edition',
       statutory_notice: 'Statutory Maritime Safety Notice'
     },
-    auth: {
+    executionPanel: {
+      title: 'Multi-Source Intelligence Verification',
+      fusion_badge: 'Multi-Source Fusion',
+      advisory_badge: 'Coordinated Advisory',
+      confidence_suffix: 'Confidence',
+      more_suffix: 'more',
+      tab_agents: 'Agents',
+      tab_plan: 'Plan',
+      tab_evidence: 'Evidence',
+      intent_identified: 'Intent Identified:',
+      source: 'Source:'
+    },
+  auth: {
       welcome_title: 'MarineMind AI: Coastal Vessel Intelligence',
       welcome_subtitle: 'Agentic AI decision support for artisanal fishermen and commercial trawlers across Indian territorial waters.',
       badge_government: 'INCOIS & MoPSW Aligned',
@@ -601,7 +695,11 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       km: 'किमी',
       m: 'मी',
       knots: 'नॉट्स',
-      depth_unit: 'मी'
+      depth_unit: 'मी',
+      telemetry: 'टेलीमेट्री',
+      satellite_stream: 'उपग्रह स्ट्रीम',
+      cancel: 'रद्द करें',
+      source: 'स्रोत'
     },
     nav: {
       dashboard: 'परिचालन',
@@ -840,7 +938,19 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       prototype_edition: 'मरीनमाइंड एआई संस्करण',
       statutory_notice: 'वैधानिक समुद्री सुरक्षा सूचना'
     },
-    auth: {
+    executionPanel: {
+      title: 'बहु-स्रोत खुफिया सत्यापन',
+      fusion_badge: 'बहु-स्रोत संलयन',
+      advisory_badge: 'समन्वित सलाह',
+      confidence_suffix: 'विश्वास',
+      more_suffix: 'अन्य',
+      tab_agents: 'एजेंट्स',
+      tab_plan: 'योजना',
+      tab_evidence: 'साक्ष्य',
+      intent_identified: 'पहचाना गया उद्देश्य:',
+      source: 'स्रोत:'
+    },
+  auth: {
       welcome_title: 'मरीनमाइंड एआई: तटीय समुद्री सुरक्षा एवं मत्स्य प्रणाली',
       welcome_subtitle: 'भारतीय क्षेत्रीय जलक्षेत्र में पारंपरिक मछुआरों और वाणिज्यिक नौकाओं के लिए स्वायत्त एआई निर्णय-सहायता प्रणाली।',
       badge_government: 'INCOIS एवं पोत परिवहन मंत्रालय प्रमाणित',
@@ -893,7 +1003,11 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       km: 'किमी',
       m: 'मी',
       knots: 'नॉट्स',
-      depth_unit: 'मी'
+      depth_unit: 'मी',
+      telemetry: 'टेलीमेट्री',
+      satellite_stream: 'उपग्रह प्रवाह',
+      cancel: 'रद्द करा',
+      source: 'स्रोत'
     },
     nav: {
       dashboard: 'परिचालन',
@@ -1132,7 +1246,19 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       prototype_edition: 'मरीनमाइंड एआय आवृत्ती',
       statutory_notice: 'वैधानिक सागरी सुरक्षा सूचना'
     },
-    auth: {
+    executionPanel: {
+      title: 'बहु-स्रोत गुप्तचर पडताळणी',
+      fusion_badge: 'बहु-स्रोत संकलन',
+      advisory_badge: 'समन्वित सल्ला',
+      confidence_suffix: 'विश्वास',
+      more_suffix: 'अधिक',
+      tab_agents: 'एजंट्स',
+      tab_plan: 'योजना',
+      tab_evidence: 'पुरावा',
+      intent_identified: 'ओळखलेला हेतू:',
+      source: 'स्रोत:'
+    },
+  auth: {
       welcome_title: 'मरीनमाइंड एआय: सागरी नौका नियंत्रण व सुरक्षा प्रणाली',
       welcome_subtitle: 'भारतीय किनारपट्टीवरील पारंपरिक मच्छीमार आणि नौकांसाठी स्वयंचलित उपग्रह निर्णय-सहाय्य प्रणाली.',
       badge_government: 'INCOIS व बंदरे मंत्रालय प्रमाणित',
@@ -1185,7 +1311,11 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       km: 'கி.மீ',
       m: 'மீ',
       knots: 'நாட்ஸ்',
-      depth_unit: 'மீ'
+      depth_unit: 'மீ',
+      telemetry: 'தொலைஅளவியல்',
+      satellite_stream: 'செயற்கைக்கோள் ஓடை',
+      cancel: 'ரத்து',
+      source: 'மூலம்'
     },
     nav: {
       dashboard: 'செயல்பாடுகள்',
@@ -1424,7 +1554,19 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       prototype_edition: 'மரைன்மைண்ட் AI பதிப்பு',
       statutory_notice: 'சட்டப்பூர்வ கடல் பாதுகாப்பு அறிவிப்பு'
     },
-    auth: {
+    executionPanel: {
+      title: 'பல-மூல நுண்ணறிவு சரிபார்ப்பு',
+      fusion_badge: 'பல-மூல இணைப்பு',
+      advisory_badge: 'ஒருங்கிணைந்த ஆலோசனை',
+      confidence_suffix: 'நம்பகத்தன்மை',
+      more_suffix: 'கூடுதல்',
+      tab_agents: 'முகவர்கள்',
+      tab_plan: 'திட்டம்',
+      tab_evidence: 'சான்று',
+      intent_identified: 'கண்டறியப்பட்ட நோக்கம்:',
+      source: 'மூலம்:'
+    },
+  auth: {
       welcome_title: 'மரைன்மைண்ட் AI: கடல்சார் கப்பல் பாதுகாப்பு தளம்',
       welcome_subtitle: 'இந்தியக் கடல் எல்லையில் பாரம்பரிய மீனவர்கள் மற்றும் படகுகளுக்கான செயற்கைக்கோள் AI வழிகாட்டுதல் அமைப்பு.',
       badge_government: 'INCOIS & மத்திய அமைச்சக அங்கீகாரம்',
@@ -1454,7 +1596,14 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       feature_satellite_title: 'நேரடி செயற்கைக்கோள் கண்காணிப்பு',
       feature_satellite_desc: 'கடல் மேற்பரப்பு வெப்பநிலை மற்றும் அலை உயரத்தின் நேரடி செயற்கைக்கோள் தரவு.',
       feature_imbl_title: 'சர்வதேச கடல் எல்லை கண்காணிப்பாளர்',
-      feature_imbl_desc: 'IMBL எல்லை அல்லது தடைசெய்யப்பட்ட பகுதிக்கு அருகில் செல்லும்போது முன்கூட்டியே எச்சரிக்கை.'
+      feature_imbl_desc: 'IMBL எல்லை அல்லது தடைசெய்யப்பட்ட பகுதிக்கு அருகில் செல்லும்போது முன்கூட்டியே எச்சரிக்கை.',
+      eval_badge: 'மதிப்பீட்டு விரைவு-தொடக்கம்',
+      or_divider: 'அல்லது உள்நுழைவு / பதிவுசெய்க',
+      authenticating: 'சரிபார்க்கிறது...',
+      mopsw_badge: 'MoPSW & INCOIS அங்கீகரிக்கப்பட்ட தளம்',
+      one_click: '1-கிளிக்',
+      footer_left: 'MarineMind AI மாதிரி பதிப்பு • துறைமுகங்கள், கப்பல் போக்குவரத்து அமைச்சகம் இணைவு',
+      footer_right: 'Open-Meteo செயற்கைக்கோள் தரவு • 10 தன்னாட்சி கடல் முகவர்கள் நேரலையில்'
     }
   }
 };

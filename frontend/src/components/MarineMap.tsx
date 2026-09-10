@@ -101,10 +101,10 @@ export const MarineMap: React.FC<MarineMapProps> = ({
         onUpdateLocationRef.current({
           latitude: lat,
           longitude: lon,
-          name: `Custom Chart Waypoint (${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E)`,
+          name: `${t.map.custom_waypoint} (${lat.toFixed(2)}°N, ${lon.toFixed(2)}°E)`,
           heading_deg: 245
         });
-        setRelocatedToast(`Vessel repositioned to ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E`);
+        setRelocatedToast(`${t.map.reposition_toast} ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E`);
         setTimeout(() => setRelocatedToast(null), 3500);
         setIsPinMode(false);
       }
@@ -172,10 +172,10 @@ export const MarineMap: React.FC<MarineMapProps> = ({
     const marker = L.marker([vesselLocation.latitude, vesselLocation.longitude], { icon: vesselIcon })
       .bindPopup(`
         <div style="font-family: inherit; font-size: 12px; color: #0f172a;">
-          <div style="font-weight: 700; color: #1d4ed8; margin-bottom: 4px;">Vessel Position Telemetry</div>
-          <div><strong>Location:</strong> ${vesselLocation.name || 'Current Position'}</div>
-          <div><strong>Coordinates:</strong> ${vesselLocation.latitude.toFixed(4)}°N, ${vesselLocation.longitude.toFixed(4)}°E</div>
-          <div><strong>Heading:</strong> ${heading}° | <strong>Status:</strong> AIS Active</div>
+          <div style="font-weight: 700; color: #1d4ed8; margin-bottom: 4px;">${t.map.popup_vessel_telemetry}</div>
+          <div><strong>${t.map.popup_location}</strong> ${vesselLocation.name || t.map.popup_current_position}</div>
+          <div><strong>${t.map.popup_coordinates}</strong> ${vesselLocation.latitude.toFixed(4)}°N, ${vesselLocation.longitude.toFixed(4)}°E</div>
+          <div><strong>${t.map.popup_heading}</strong> ${heading}° | <strong>${t.map.popup_status}</strong> ${t.common.ais_active}</div>
         </div>
       `);
 
@@ -213,12 +213,12 @@ export const MarineMap: React.FC<MarineMapProps> = ({
       const popupContent = `
         <div style="font-family: inherit; font-size: 12px; min-width: 220px; color: #0f172a;">
           <div style="font-weight: 700; color: ${strokeColor}; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 6px;">
-            ${z.name} (${z.recommendation.replace(/_/g, ' ')})
+            ${z.name} (${isAvoid ? t.common.avoid : isCaution ? t.common.moderate : t.common.recommended})
           </div>
-          <div><strong>Distance:</strong> ${z.distance_km} km</div>
-          <div><strong>Productivity:</strong> ${z.productivity_score}/100</div>
-          <div><strong>SST:</strong> ${z.sst_c}°C | <strong>Chl-a:</strong> ${z.chlorophyll_mg_m3} mg/m³</div>
-          <div><strong>Wave Risk:</strong> ${z.wave_risk}</div>
+          <div><strong>${t.map.popup_distance}</strong> ${z.distance_km} ${t.common.km}</div>
+          <div><strong>${t.map.popup_productivity}</strong> ${z.productivity_score}/100</div>
+          <div><strong>${t.map.popup_sst}</strong> ${z.sst_c}°C | <strong>${t.map.popup_chla}</strong> ${z.chlorophyll_mg_m3} mg/m³</div>
+          <div><strong>${t.map.popup_wave_risk}</strong> ${z.wave_risk === 'LOW' ? t.common.safe : isAvoid ? t.common.high_risk : t.common.moderate}</div>
           <div style="font-size: 11px; color: #475569; margin-top: 6px; padding-top: 4px; border-top: 1px dashed #e2e8f0;">
             ${z.description}
           </div>
@@ -262,10 +262,10 @@ export const MarineMap: React.FC<MarineMapProps> = ({
       polyline.bindPopup(`
         <div style="font-family: inherit; font-size: 12px; min-width: 200px; color: #0f172a;">
           <div style="font-weight: 700; color: ${color}; margin-bottom: 4px;">
-            ${isRec ? 'Recommended Fairway Route (Route B)' : 'Direct Path - Avoid (Route A)'}
+            ${isRec ? t.map.popup_rec_route : t.map.popup_avoid_route}
           </div>
-          <div><strong>Distance:</strong> ${r.distance_km} km (~${r.travel_time_mins} min)</div>
-          <div><strong>Risk Score:</strong> ${r.risk_score}/100 (${r.risk_level})</div>
+          <div><strong>${t.map.popup_distance}</strong> ${r.distance_km} ${t.common.km} (~${r.travel_time_mins} min)</div>
+          <div><strong>${t.map.popup_risk_score}</strong> ${r.risk_score}/100 (${r.risk_level === 'LOW' ? t.common.safe : r.risk_level === 'HIGH' ? t.common.high_risk : t.common.moderate})</div>
           <div style="font-size: 11px; color: #475569; margin-top: 4px;">
             ${r.why_chosen_or_avoided}
           </div>
@@ -322,7 +322,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
           opacity: 0.9
         }).bindPopup(`
           <div style="font-family: inherit; font-size: 12px; color: #0f172a;">
-            <div style="font-weight: 700; color: #d97706;">International Maritime Boundary Line</div>
+            <div style="font-weight: 700; color: #d97706;">${t.map.popup_imbl}</div>
             <div><strong>${fence.name}</strong></div>
             <div style="color: #475569; margin-top: 2px;">${fence.description}</div>
           </div>
@@ -355,8 +355,8 @@ export const MarineMap: React.FC<MarineMapProps> = ({
       dashArray: '5, 5'
     }).bindPopup(`
       <div style="font-family: inherit; font-size: 12px; color: #0f172a;">
-        <div style="font-weight: 700; color: #ea580c;">High Swell Hazard Zone</div>
-        <div>Shallow Breaker Shoal (2.7m swell surge)</div>
+        <div style="font-weight: 700; color: #ea580c;">${t.map.popup_hazard_zone}</div>
+        <div>${t.map.popup_hazard_desc}</div>
       </div>
     `);
 
@@ -383,7 +383,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
       weight: 1.2,
       fillColor: '#0284c7',
       fillOpacity: 0.12
-    }).bindTooltip('SST Thermal Front: 28.1°C', { permanent: false, direction: 'top' });
+    }).bindTooltip(t.map.popup_thermal_front, { permanent: false, direction: 'top' });
 
     group.addLayer(poly);
   }, [showSSTOverlay]);
@@ -396,7 +396,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
       {isPinMode && (
         <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 bg-blue-600 text-white px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-md border border-blue-400 flex items-center gap-2 animate-bounce">
           <Crosshair className="w-3.5 h-3.5" />
-          <span>Click anywhere on chart to set vessel position</span>
+          <span>{t.map.reposition_pin_hint}</span>
           <button
             type="button"
             onClick={() => setIsPinMode(false)}
@@ -412,11 +412,11 @@ export const MarineMap: React.FC<MarineMapProps> = ({
         <button
           type="button"
           onClick={() => setIsLayerControlOpen(!isLayerControlOpen)}
-          title="Toggle chart layer overlays"
+          title={t.map.toggle_layers_tooltip}
           className="h-8 px-2.5 rounded-lg bg-white/95 backdrop-blur-md hover:bg-white text-slate-800 font-semibold text-xs border border-slate-300 inline-flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
         >
           <Layers className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-          <span className="leading-none text-[11px]">Layers</span>
+          <span className="leading-none text-[11px]">{t.map.layers}</span>
           <span className="w-1.5 h-1.5 rounded-full bg-blue-600 shrink-0"></span>
         </button>
 
@@ -425,7 +425,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
             <div className="font-bold text-slate-800 flex items-center justify-between pb-1.5 border-b border-slate-100 text-[11px] uppercase tracking-wider">
               <span className="flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5 text-blue-600" />
-                <span>Chart Layers</span>
+                <span>{t.map.chart_layers}</span>
               </span>
               <button
                 type="button"
@@ -546,7 +546,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
         <button
           type="button"
           onClick={() => setIsPinMode(!isPinMode)}
-          title="Click to enable tap-on-chart to place vessel position"
+          title={t.map.set_pin_tooltip}
           className={`h-7 sm:h-8 px-2 sm:px-3 rounded-lg backdrop-blur-md font-semibold text-[11px] sm:text-xs border inline-flex items-center justify-center gap-1 sm:gap-1.5 shadow-sm transition-colors leading-none ${
             isPinMode
               ? 'bg-blue-600 text-white border-blue-700'

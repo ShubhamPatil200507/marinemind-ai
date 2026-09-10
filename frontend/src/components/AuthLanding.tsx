@@ -180,7 +180,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
           <div className="lg:col-span-6 space-y-4">
             <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold leading-none">
               <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>
-              <span>MoPSW & INCOIS Aligned Decision Platform</span>
+              <span>{t.auth.mopsw_badge}</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight leading-tight">
@@ -244,10 +244,10 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
               <div className="mb-5 p-4 rounded-xl bg-blue-50/70 border border-blue-200 space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-bold text-blue-900 uppercase tracking-wider font-mono">
-                    Evaluation Quick-Start
+                    {t.auth.eval_badge}
                   </span>
                   <span className="text-[10px] px-2 py-0.5 rounded font-semibold bg-blue-100 text-blue-800 border border-blue-300">
-                    1-Click
+                    {t.auth.one_click}
                   </span>
                 </div>
                 <p className="text-xs text-blue-800 leading-relaxed">
@@ -259,7 +259,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                   disabled={loading}
                   className="w-full h-10 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <span>{loading ? 'Authenticating...' : t.auth.instant_access_btn}</span>
+                  <span>{loading ? t.auth.authenticating : t.auth.instant_access_btn}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
@@ -267,7 +267,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
               <div className="relative flex items-center justify-center my-4">
                 <div className="border-t border-slate-200 w-full"></div>
                 <span className="bg-white px-3 text-[11px] text-slate-400 uppercase tracking-wider font-mono shrink-0">
-                  Or Sign In / Register
+                  {t.auth.or_divider}
                 </span>
               </div>
 
@@ -350,7 +350,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                     disabled={loading}
                     className="w-full h-10 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer mt-1"
                   >
-                    <span>{loading ? 'Authenticating...' : t.auth.sign_in_btn}</span>
+                    <span>{loading ? t.auth.authenticating : t.auth.sign_in_btn}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
@@ -456,7 +456,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                     disabled={loading}
                     className="w-full h-10 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer mt-1"
                   >
-                    <span>{loading ? 'Registering...' : t.auth.register_btn}</span>
+                    <span>{loading ? t.auth.authenticating : t.auth.register_btn}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
@@ -469,8 +469,8 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
       {/* Footer Bar matching platform footer */}
       <footer className="bg-white border-t border-slate-200 py-3 px-4 sm:px-6 text-xs text-slate-500">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>MarineMind AI Prototype Edition • Ministry of Ports, Shipping and Waterways Aligned</span>
-          <span>Open-Meteo Satellite Feed • 10 Autonomous Marine Domain Agents Online</span>
+          <span>{t.auth.footer_left}</span>
+          <span>{t.auth.footer_right}</span>
         </div>
       </footer>
     </div>

@@ -46,7 +46,21 @@ export function App() {
     }
   });
   const [activeTab, setActiveTab] = useState<string>('copilot'); // Default to AI Copilot & Map
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
+  const [selectedLanguage, setSelectedLanguageState] = useState<string>(() => {
+    try {
+      return localStorage.getItem('marinemind_lang') || 'en';
+    } catch {
+      return 'en';
+    }
+  });
+
+  const setSelectedLanguage = (lang: string) => {
+    setSelectedLanguageState(lang);
+    try {
+      localStorage.setItem('marinemind_lang', lang);
+    } catch {}
+  };
+
   const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
   const [isNoticeOpen, setIsNoticeOpen] = useState<boolean>(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState<boolean>(false);
@@ -573,7 +587,7 @@ export function App() {
             </span>
             <span className="text-slate-300">•</span>
             <span className="leading-none text-slate-600">
-              <strong className="text-slate-900">{isDemoMode ? t.footer.mode : `Telemetry: ${t.common.live} Satellite Stream`}</strong>
+              <strong className="text-slate-900">{isDemoMode ? t.footer.mode : `${t.common.telemetry}: ${t.common.live} ${t.common.satellite_stream}`}</strong>
             </span>
           </div>
 

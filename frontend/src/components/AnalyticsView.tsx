@@ -19,11 +19,11 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ selectedLanguage =
   ];
 
   const chloroLayers = [
-    { depth: `0${t.common.m} Surface`, val: 2.15, status: t.analytics.bloom_status, width: '85%' },
-    { depth: `10${t.common.m} Shelf`, val: 2.45, status: t.analytics.optimal_range, width: '95%' },
-    { depth: `25${t.common.m} Mid-water`, val: 1.60, status: t.analytics.optimal_range, width: '65%' },
-    { depth: `50${t.common.m} Deep`, val: 0.85, status: t.common.moderate, width: '35%' },
-    { depth: `80${t.common.m} Benthic`, val: 0.20, status: t.common.safe, width: '15%' }
+    { depth: `0${t.common.m} ${t.analytics.surface}`, val: 2.15, status: t.analytics.bloom_status, width: '85%' },
+    { depth: `10${t.common.m} ${t.analytics.shelf}`, val: 2.45, status: t.analytics.optimal_range, width: '95%' },
+    { depth: `25${t.common.m} ${t.analytics.mid_water}`, val: 1.60, status: t.analytics.optimal_range, width: '65%' },
+    { depth: `50${t.common.m} ${t.analytics.deep}`, val: 0.85, status: t.common.moderate, width: '35%' },
+    { depth: `80${t.common.m} ${t.analytics.benthic}`, val: 0.20, status: t.common.safe, width: '15%' }
   ];
 
   return (
@@ -53,7 +53,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({ selectedLanguage =
               </span>
             </div>
             <span className="font-mono text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
-              Mean: 28.36°C
+              {t.analytics.mean_label} 28.36°C
             </span>
           </div>
 
