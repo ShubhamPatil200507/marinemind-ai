@@ -255,6 +255,38 @@ export interface TranslationSchema {
     prototype_edition: string;
     statutory_notice: string;
   };
+  auth: {
+    welcome_title: string;
+    welcome_subtitle: string;
+    badge_government: string;
+    badge_live_satellite: string;
+    sign_in_tab: string;
+    register_tab: string;
+    vessel_id_label: string;
+    vessel_id_placeholder: string;
+    phone_label: string;
+    phone_placeholder: string;
+    password_label: string;
+    password_placeholder: string;
+    name_label: string;
+    name_placeholder: string;
+    harbor_label: string;
+    harbor_placeholder: string;
+    sign_in_btn: string;
+    register_btn: string;
+    instant_access_btn: string;
+    instant_access_desc: string;
+    demo_credentials_hint: string;
+    logout_btn: string;
+    logged_in_as: string;
+    platform_capabilities_heading: string;
+    feature_agents_title: string;
+    feature_agents_desc: string;
+    feature_satellite_title: string;
+    feature_satellite_desc: string;
+    feature_imbl_title: string;
+    feature_imbl_desc: string;
+  };
 }
 
 export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
@@ -775,6 +807,38 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       mode: 'लाइव समुद्री स्ट्रीम',
       prototype_edition: 'मरीनमाइंड एआई संस्करण',
       statutory_notice: 'वैधानिक समुद्री सुरक्षा सूचना'
+    },
+    auth: {
+      welcome_title: 'मरीनमाइंड एआई: तटीय समुद्री सुरक्षा एवं मत्स्य प्रणाली',
+      welcome_subtitle: 'भारतीय क्षेत्रीय जलक्षेत्र में पारंपरिक मछुआरों और वाणिज्यिक नौकाओं के लिए स्वायत्त एआई निर्णय-सहायता प्रणाली।',
+      badge_government: 'INCOIS एवं पोत परिवहन मंत्रालय प्रमाणित',
+      badge_live_satellite: 'लाइव उपग्रह टेलीमेट्री ऑनलाइन',
+      sign_in_tab: 'नाविक / कप्तान लॉगिन',
+      register_tab: 'नई नौका पंजीकरण',
+      vessel_id_label: 'नौका पंजीकरण संख्या या मोबाइल नंबर',
+      vessel_id_placeholder: 'उदा. IND-MH-01-MM-8492 या 9820145892',
+      phone_label: 'पंजीकृत मोबाइल नंबर',
+      phone_placeholder: '10 अंकों का मोबाइल नंबर',
+      password_label: 'सुरक्षा पासवर्ड / समुद्री पिन',
+      password_placeholder: 'अपना पासवर्ड दर्ज करें',
+      name_label: 'कप्तान / मालिक का पूरा नाम',
+      name_placeholder: 'उदा. रमेश पाटिल',
+      harbor_label: 'मूल मछली पकड़ने का बंदरगाह',
+      harbor_placeholder: 'उदा. मुंबई (ससून डॉक)',
+      sign_in_btn: 'कंसोल में साइन इन करें',
+      register_btn: 'पंजीकरण करें और शुरू करें',
+      instant_access_btn: 'परीक्षकों के लिए 1-क्लिक त्वरित प्रवेश',
+      instant_access_desc: 'सत्यापित नाविक क्रेडेंशियल्स के साथ बिना टाइप किए तुरंत कंसोल में प्रवेश करें।',
+      demo_credentials_hint: 'डेमो क्रेडेंशियल: IND-MH-01-MM-8492 | पासवर्ड: marinepassword',
+      logout_btn: 'साइन आउट',
+      logged_in_as: 'नाविक कंसोल',
+      platform_capabilities_heading: 'प्रमुख परिचालन क्षमताएं',
+      feature_agents_title: '१० विशेष एआई एजेंट्स',
+      feature_agents_desc: 'मौसम, लहरों, संभावित मछली क्षेत्रों और मार्ग सुरक्षा के लिए समन्वित स्वायत्त एजेंट।',
+      feature_satellite_title: 'वास्तविक समय उपग्रह निरीक्षण',
+      feature_satellite_desc: 'सीधे उपग्रह से समुद्र का तापमान, हवा की दिशा और लहरों का लाइव विश्लेषण।',
+      feature_imbl_title: 'अंतर्राष्ट्रीय सीमा रक्षक',
+      feature_imbl_desc: 'अंतर्राष्ट्रीय सीमा या प्रतिबंधित क्षेत्र में प्रवेश से पहले 5 किमी बफर चेतावनी।'
     }
   },
 
@@ -1035,13 +1099,45 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
       mode: 'थेट सागरी प्रवाह',
       prototype_edition: 'मरीनमाइंड एआय आवृत्ती',
       statutory_notice: 'वैधानिक सागरी सुरक्षा सूचना'
+    },
+    auth: {
+      welcome_title: 'मरीनमाइंड एआय: सागरी नौका नियंत्रण व सुरक्षा प्रणाली',
+      welcome_subtitle: 'भारतीय किनारपट्टीवरील पारंपरिक मच्छीमार आणि नौकांसाठी स्वयंचलित उपग्रह निर्णय-सहाय्य प्रणाली.',
+      badge_government: 'INCOIS व बंदरे मंत्रालय प्रमाणित',
+      badge_live_satellite: 'थेट उपग्रह प्रवाह कार्यरत',
+      sign_in_tab: 'खलाशी / कॅप्टन लॉगिन',
+      register_tab: 'नवीन नौका नोंदणी',
+      vessel_id_label: 'नौका नोंदणी क्रमांक किंवा मोबाईल नंबर',
+      vessel_id_placeholder: 'उदा. IND-MH-01-MM-8492 किंवा 9820145892',
+      phone_label: 'नोंदणीकृत मोबाईल नंबर',
+      phone_placeholder: '१० अंकी मोबाईल नंबर',
+      password_label: 'सुरक्षा पासवर्ड / पिन',
+      password_placeholder: 'पासवर्ड प्रविष्ट करा',
+      name_label: 'कॅप्टन / मालकाचे पूर्ण नाव',
+      name_placeholder: 'उदा. रमेश पाटील',
+      harbor_label: 'मूळ मासेमारी बंदर',
+      harbor_placeholder: 'उदा. मुंबई (ससून डॉक)',
+      sign_in_btn: 'कन्सोलमध्ये साइन इन करा',
+      register_btn: 'नोंदणी करा आणि सुरू करा',
+      instant_access_btn: 'परीक्षकांसाठी १-क्लिक थेट प्रवेश',
+      instant_access_desc: 'प्रमाणित कॅप्टन खात्यासह थेट कन्सोलमध्ये प्रवेश करा.',
+      demo_credentials_hint: 'डेमो लॉगिन: IND-MH-01-MM-8492 | पासवर्ड: marinepassword',
+      logout_btn: 'बाहेर पडा (साइन आउट)',
+      logged_in_as: 'कॅप्टन कन्सोल',
+      platform_capabilities_heading: 'प्रमुख प्रणाली वैशिष्ट्ये',
+      feature_agents_title: '१० स्वायत्त सागरी एजंट्स',
+      feature_agents_desc: 'हवामान, लाटा, मासेमारी क्षेत्र (PFZ) आणि सुरक्षा मार्गदर्शक स्वयंचलित एजंट्स.',
+      feature_satellite_title: 'थेट उपग्रह निरीक्षण',
+      feature_satellite_desc: 'थेट उपग्रहावरून समुद्राचे तापमान आणि लाटांचा रिअल-टाइम डेटा.',
+      feature_imbl_title: 'आंतरराष्ट्रीय सागरी सीमा रक्षक',
+      feature_imbl_desc: 'आंतरराष्ट्रीय सीमा (IMBL) जवळ आल्यास स्वयंचलित सुरक्षा सूचना.'
     }
   },
 
   ta: {
     common: {
-      live: 'நேரடி ஸ்ட்ரீம்',
-      simulated: 'உருவகப்படுத்தப்பட்டது',
+      live: 'நேரடி',
+      simulated: 'மாதிரி',
       ais_active: 'AIS செயலில் உள்ளது',
       change: 'மாற்று',
       safe: 'பாதுகாப்பானது',
@@ -1061,20 +1157,20 @@ export const TRANSLATIONS: Record<LanguageCode, TranslationSchema> = {
     },
     nav: {
       dashboard: 'செயல்பாடுகள்',
-      copilot: 'துணை இயக்கி & வரைபடம்',
-      pfz: 'மீன்பிடி மண்டலம் (PFZ)',
+      copilot: 'துணை இயக்கி',
+      pfz: 'PFZ மண்டலம்',
       risk: 'ஆபத்து அணி',
-      routes: 'பாதுகாப்பான பாதைகள்',
+      routes: 'பாதுகாப்பான பாதை',
       geofence: 'கடல் எல்லைகள்',
       alerts: 'எச்சரிக்கைகள்',
       analytics: 'கடலியல்',
       short_ops: 'செயல்பாடு',
-      short_copilot: 'துணை இயக்கி',
+      short_copilot: 'துணை',
       short_pfz: 'PFZ',
       short_risk: 'ஆபத்து',
-      short_routes: 'பாதைகள்',
-      short_geofence: 'எல்லைகள்',
-      short_alerts: 'அறிவிப்புகள்',
+      short_routes: 'பாதை',
+      short_geofence: 'எல்லை',
+      short_alerts: 'எச்சரிக்கை',
       short_analytics: 'கடலியல்'
     },
     scenarios: {

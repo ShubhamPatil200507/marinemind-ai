@@ -12,6 +12,7 @@ import { AlertCenter } from './components/AlertCenter';
 import { AnalyticsView } from './components/AnalyticsView';
 import { NoticeModal } from './components/NoticeModal';
 import { LocationModal } from './components/LocationModal';
+import { AuthLanding, type UserProfile } from './components/AuthLanding';
 
 import {
   sendChatQuery,
@@ -36,12 +37,34 @@ import { Play, Compass, Navigation, Layers, MessageSquare } from 'lucide-react';
 import { getTranslation } from './services/i18n';
 
 export function App() {
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    try {
+      const saved = localStorage.getItem('marinemind_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
   const [activeTab, setActiveTab] = useState<string>('copilot'); // Default to AI Copilot & Map
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
   const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
   const [isNoticeOpen, setIsNoticeOpen] = useState<boolean>(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState<boolean>(false);
   const [mobileCopilotView, setMobileCopilotView] = useState<'both' | 'copilot' | 'map'>('both');
+
+  const handleLogin = (user: UserProfile) => {
+    setCurrentUser(user);
+    try {
+      localStorage.setItem('marinemind_user', JSON.stringify(user));
+    } catch {}
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    try {
+      localStorage.removeItem('marinemind_user');
+    } catch {}
+  };
 
   const t = getTranslation(selectedLanguage);
 
@@ -286,8 +309,19 @@ export function App() {
     setActiveTab('routes');
   };
 
+  // If not authenticated, display the dedicated Multilingual Landing & Auth Page
+  if (!currentUser) {
+    return (
+      <AuthLanding
+        onLogin={handleLogin}
+        selectedLanguage={selectedLanguage}
+        setSelectedLanguage={setSelectedLanguage}
+      />
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white overflow-x-hidden w-full min-w-0">
       {/* Navigation Bar */}
       <Navbar
         activeTab={activeTab}
@@ -299,6 +333,8 @@ export function App() {
         onOpenNotice={() => setIsNoticeOpen(true)}
         vesselLocation={vesselLocation}
         onOpenLocationModal={() => setIsLocationModalOpen(true)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       {/* Quick Evaluation Scenario Action Bar (Responsive on Phone & Desktop) */}

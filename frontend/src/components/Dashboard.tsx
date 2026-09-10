@@ -127,11 +127,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div
               key={sc.id}
               onClick={() => onTriggerScenario(sc.id)}
-              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-blue-400 hover:shadow-sm cursor-pointer transition-all flex flex-col justify-between group"
+              className="p-4 rounded-xl bg-white border border-slate-200 hover:border-blue-400 hover:shadow-sm cursor-pointer transition-all flex flex-col justify-between group min-w-0 overflow-hidden"
             >
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border leading-none inline-flex items-center ${sc.badgeColor}`}>
+                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border leading-none inline-flex items-center truncate ${sc.badgeColor}`}>
                     {sc.badge}
                   </span>
                   <div className="w-5 h-5 rounded-full bg-slate-100 group-hover:bg-blue-600 group-hover:text-white flex items-center justify-center transition-colors shrink-0">
@@ -139,15 +139,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </div>
                 </div>
 
-                <div className="font-bold text-xs text-slate-900 group-hover:text-blue-600 transition-colors">
+                <div className="font-bold text-xs text-slate-900 group-hover:text-blue-600 transition-colors break-words">
                   {sc.title}
                 </div>
 
-                <div className="mt-2 text-xs font-semibold text-slate-800">
+                <div className="mt-2 text-xs font-semibold text-slate-800 break-words">
                   {sc.keyMetric}
                 </div>
 
-                <div className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                <div className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed break-words">
                   {sc.highlight}
                 </div>
               </div>

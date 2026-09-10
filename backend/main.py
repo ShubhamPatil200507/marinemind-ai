@@ -4,7 +4,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.models.database import init_db
-from backend.api import chat, marine, weather, pfz, routes, geofence, alerts, scenarios
+from backend.api import chat, marine, weather, pfz, routes, geofence, alerts, scenarios, auth
 
 app = FastAPI(
     title="MarineMind AI API",
@@ -28,6 +28,7 @@ async def startup_event():
     print("[MarineMind AI] Multi-Agent Engine and SQLite/PostGIS database initialized.")
 
 # Register API Routers
+app.include_router(auth.router)
 app.include_router(chat.router)
 app.include_router(marine.router)
 app.include_router(weather.router)
