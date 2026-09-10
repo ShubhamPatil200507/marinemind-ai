@@ -31,38 +31,38 @@ export const Dashboard: React.FC<DashboardProps> = ({
     {
       id: 'scenario_1_safety',
       title: t.scenarios.s1,
-      badge: 'TEMPORAL RISK',
+      badge: t.dashboard.scenario_badges.s1,
       badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
-      keyMetric: 'Safe Window: 06:00 - 10:30 AM',
-      highlight: 'Swell surge increases to 2.6m after 11:30 AM',
-      query: 'Is it safe to go fishing tomorrow morning?'
+      keyMetric: t.dashboard.scenario_metrics.s1,
+      highlight: t.dashboard.scenario_highlights.s1,
+      query: t.copilot.inquiries[0]
     },
     {
       id: 'scenario_2_pfz',
       title: t.scenarios.s2,
-      badge: 'RESOURCE FUSION',
+      badge: t.dashboard.scenario_badges.s2,
       badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      keyMetric: 'PFZ Alpha (8.2 km) - 86/100',
-      highlight: 'PFZ Bravo (6.1 km) rejected due to 2.7m breaker shoals',
-      query: 'Where is the nearest Potential Fishing Zone today?'
+      keyMetric: t.dashboard.scenario_metrics.s2,
+      highlight: t.dashboard.scenario_highlights.s2,
+      query: t.copilot.inquiries[1]
     },
     {
       id: 'scenario_3_route',
       title: t.scenarios.s3,
-      badge: 'NAVIGATION OPTIMIZER',
+      badge: t.dashboard.scenario_badges.s3,
       badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-      keyMetric: 'Route B: Low Risk (+15 min transit)',
-      highlight: 'Route A rejected: passes through firing range & shoals',
-      query: 'What is the safest route to PFZ Alpha?'
+      keyMetric: t.dashboard.scenario_metrics.s3,
+      highlight: t.dashboard.scenario_highlights.s3,
+      query: t.copilot.inquiries[2]
     },
     {
       id: 'scenario_4_geofence',
       title: t.scenarios.s4,
-      badge: 'SOVEREIGNTY GUARDIAN',
+      badge: t.dashboard.scenario_badges.s4,
       badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
-      keyMetric: '4.2 km remaining (< 5 km buffer)',
-      highlight: 'Audible warning & course correction recommendation (270°)',
-      query: 'Am I approaching a restricted or international boundary?'
+      keyMetric: t.dashboard.scenario_metrics.s4,
+      highlight: t.dashboard.scenario_highlights.s4,
+      query: t.copilot.inquiries[3]
     }
   ];
 
@@ -118,7 +118,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </p>
           </div>
           <span className="text-[11px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-            4 Scenarios
+            {t.dashboard.scenarios_count}
           </span>
         </div>
 
@@ -180,14 +180,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span className="text-xs text-slate-400 font-mono leading-none">/ 100</span>
               </div>
               <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-50 text-amber-700 border border-amber-200 leading-none">
-                MODERATE
+                {t.common.moderate}
               </span>
             </div>
             <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2.5 overflow-hidden">
               <div className="bg-amber-500 h-full rounded-full" style={{ width: '42%' }}></div>
             </div>
             <div className="text-[11px] text-slate-600 mt-2.5 pt-2 border-t border-slate-100">
-              Nearshore safe until 10:30; swell rises after noon.
+              {t.dashboard.risk_summary}
             </div>
           </div>
 
@@ -199,18 +199,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-2xl font-black text-slate-900 font-mono leading-none">
-                {topPFZ ? `${topPFZ.distance_km} km` : '8.2 km'}
+                {topPFZ ? `${topPFZ.distance_km} ${t.common.km}` : `8.2 ${t.common.km}`}
               </span>
               <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 leading-none">
-                86/100 CONFIDENCE
+                {topPFZ ? `${topPFZ.score}/100` : '86/100'} {t.common.confidence}
               </span>
             </div>
             <div className="text-xs font-semibold text-slate-800 mt-2">
               {topPFZ ? topPFZ.name : 'PFZ Alpha'}
             </div>
             <div className="text-[11px] text-slate-600 mt-1 pt-2 border-t border-slate-100 flex items-center justify-between">
-              <span>SST: {topPFZ ? topPFZ.sst_c : '28.1'}°C</span>
-              <span>Chl: {topPFZ ? topPFZ.chlorophyll_mg_m3 : '2.15'} mg/m³</span>
+              <span>{t.dashboard.sst_label}: {topPFZ ? topPFZ.sst_c : '28.1'}°C</span>
+              <span>{t.dashboard.chl_label}: {topPFZ ? topPFZ.chlorophyll_mg_m3 : '2.15'} mg/m³</span>
             </div>
           </div>
 
@@ -223,9 +223,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-baseline gap-1.5 leading-none">
                 <span className="text-2xl font-black text-slate-900 font-mono leading-none">
-                  {weather.wave_height_m} m
+                  {weather.wave_height_m} {t.common.m}
                 </span>
-                <span className="text-xs text-slate-400 font-mono leading-none">swell</span>
+                <span className="text-xs text-slate-400 font-mono leading-none">{t.dashboard.swell_label}</span>
               </div>
               <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 leading-none">
                 T: {weather.wave_period_s}s
@@ -233,10 +233,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div className="text-xs font-semibold text-slate-800 mt-2 flex items-center gap-1">
               <Wind className="w-3.5 h-3.5 text-slate-500 shrink-0" />
-              <span>{weather.wind_speed_kmh} km/h {weather.wind_direction}</span>
+              <span>{weather.wind_speed_kmh} {t.common.km}/h {weather.wind_direction}</span>
             </div>
             <div className="text-[11px] text-slate-600 mt-1 pt-2 border-t border-slate-100">
-              Calm morning conditions; wave breaker shoals active offshore.
+              {t.dashboard.hydro_summary}
             </div>
           </div>
 
@@ -248,18 +248,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-2xl font-black text-slate-900 font-mono leading-none">
-                {alerts.length} Active
+                {alerts.length} {t.alerts.status_active}
               </span>
               <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 leading-none">
-                COASTAL WATCH
+                {t.alerts.source_coastguard}
               </span>
             </div>
             <div className="text-xs font-semibold text-slate-800 mt-2 truncate">
-              {alerts[0]?.title || 'High Swell Advisory'}
+              {alerts[0]?.title || t.dashboard.advisories_summary}
             </div>
             <div className="text-[11px] text-slate-600 mt-1 pt-2 border-t border-slate-100 flex items-center justify-between">
-              <span>IMBL Distance: 18.5 km</span>
-              <span className="text-emerald-600 font-semibold">Waters Safe</span>
+              <span>{t.geofence.distance_to_border}: 18.5 {t.common.km}</span>
+              <span className="text-emerald-600 font-semibold">{t.common.safe}</span>
             </div>
           </div>
         </div>
@@ -273,27 +273,27 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex items-center gap-2">
               <Navigation className="w-4 h-4 text-blue-600" />
               <span className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-                Fairway Detour Analysis (Route Recommendation)
+                {t.routes.title}
               </span>
             </div>
             <span className="text-[11px] font-mono text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-              ROUTE B RECOMMENDED
+              {t.routes.recommended_tag}
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
             <div className="p-3 rounded-lg bg-emerald-50/60 border border-emerald-200">
-              <div className="text-[10px] font-bold text-emerald-800 uppercase">Route B (Safe Fairway Detour)</div>
-              <div className="text-sm font-bold text-slate-900 mt-1">16.2 km (~61 min)</div>
+              <div className="text-[10px] font-bold text-emerald-800 uppercase">{t.routes.route_b_name}</div>
+              <div className="text-sm font-bold text-slate-900 mt-1">16.2 {t.common.km} (~61 min)</div>
               <div className="text-[11px] text-emerald-700 mt-1">
-                Navigates clear of breaker shoals and maintains &gt; 5 km defense clearance.
+                {t.routes.route_b_desc}
               </div>
             </div>
             <div className="p-3 rounded-lg bg-rose-50/60 border border-rose-200">
-              <div className="text-[10px] font-bold text-rose-800 uppercase">Route A (Direct Path - Avoid)</div>
-              <div className="text-sm font-bold text-slate-900 mt-1">12.2 km (~45 min)</div>
+              <div className="text-[10px] font-bold text-rose-800 uppercase">{t.routes.route_a_name}</div>
+              <div className="text-sm font-bold text-slate-900 mt-1">12.2 {t.common.km} (~45 min)</div>
               <div className="text-[11px] text-rose-700 mt-1">
-                Traverses 2.7m breaker shoals and approaches within 1.8 km of firing perimeter.
+                {t.routes.route_a_desc}
               </div>
             </div>
           </div>
@@ -302,7 +302,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             onClick={() => onNavigateTab('routes')}
             className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 pt-1"
           >
-            <span>Inspect Full Navigational Waypoints</span>
+            <span>{t.routes.waypoints_title}</span>
             <ArrowRight className="w-3 h-3" />
           </button>
         </div>
@@ -313,32 +313,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div className="flex items-center gap-2">
               <Radio className="w-4 h-4 text-blue-600" />
               <span className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-                Maritime Sovereignty & Boundary Guardian
+                {t.geofence.title}
               </span>
             </div>
             <span className="text-[11px] font-mono text-blue-700 font-semibold bg-blue-50 px-2 py-0.5 rounded border border-blue-200 self-start sm:self-auto">
-              GEOFENCE ENGINE ONLINE
+              {t.copilot.pipeline_online.toUpperCase()}
             </span>
           </div>
 
           <div className="space-y-2 text-xs">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200 gap-1.5">
               <div>
-                <div className="font-semibold text-slate-900">Current Position (Mumbai Sassoon Docks)</div>
+                <div className="font-semibold text-slate-900">{t.geofence.imbl_label}</div>
                 <div className="text-[11px] text-slate-500 font-mono">18.9220°N, 72.8347°E</div>
               </div>
               <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 self-start sm:self-auto">
-                TERRITORIAL WATERS (SAFE)
+                {t.geofence.status_safe}
               </span>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between p-2.5 rounded-lg bg-slate-50 border border-slate-200 gap-1.5">
               <div>
-                <div className="font-semibold text-slate-900">Kutch Sector Boundary Proximity (Scenario 4)</div>
-                <div className="text-[11px] text-slate-500 font-mono">IMBL Distance: 4.2 km remaining</div>
+                <div className="font-semibold text-slate-900">{t.scenarios.s4}</div>
+                <div className="text-[11px] text-slate-500 font-mono">{t.geofence.distance_to_border}: 4.2 {t.common.km}</div>
               </div>
               <span className="text-[11px] font-semibold text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 self-start sm:self-auto">
-                PROXIMITY ALERT (&lt; 5 KM)
+                {t.geofence.status_warning}
               </span>
             </div>
           </div>
@@ -347,7 +347,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             onClick={() => onNavigateTab('geofence')}
             className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1 pt-1"
           >
-            <span>Launch Boundary Simulation & EEZ Matrix</span>
+            <span>{t.geofence.simulate_proximity}</span>
             <ArrowRight className="w-3 h-3" />
           </button>
         </div>

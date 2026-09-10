@@ -1,13 +1,16 @@
 // frontend/src/components/NoticeModal.tsx
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
+import { getTranslation } from '../services/i18n';
 
 interface NoticeModalProps {
   isOpen: boolean;
   onClose: () => void;
+  selectedLanguage?: string;
 }
 
-export const NoticeModal: React.FC<NoticeModalProps> = ({ isOpen, onClose }) => {
+export const NoticeModal: React.FC<NoticeModalProps> = ({ isOpen, onClose, selectedLanguage = 'en' }) => {
+  const t = getTranslation(selectedLanguage);
   if (!isOpen) return null;
 
   return (
@@ -23,28 +26,21 @@ export const NoticeModal: React.FC<NoticeModalProps> = ({ isOpen, onClose }) => 
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
           <AlertTriangle className="w-5 h-5 text-amber-500" />
           <h2 className="font-bold text-sm text-slate-900 uppercase tracking-wide">
-            Statutory Maritime Safety Notice
+            {t.noticeModal.title}
           </h2>
         </div>
 
         <div className="text-xs text-slate-600 space-y-3 leading-relaxed">
           <p>
-            <strong>MarineMind AI</strong> is an enterprise <strong>Maritime Decision Support System (DSS)</strong> designed for coastal fisheries, fleet navigation safety, and maritime operations.
-            It provides fused estimations derived from satellite oceanography, hydrodynamic wave telemetry, and sovereign geospatial boundaries.
+            <strong>MarineMind AI</strong> - {t.noticeModal.body}
           </p>
 
           <div className="p-3 bg-amber-50/70 border border-amber-200 rounded-lg text-amber-900 space-y-1">
-            <div className="font-bold">Mandatory Operational Directives:</div>
+            <div className="font-bold">{t.noticeModal.dept}</div>
             <div className="text-[11px] leading-snug">
-              This system does not replace statutory navigational warnings issued by INCOIS, IMD, or the Indian Coast Guard.
-              Always obtain harbor master clearance prior to departure.
+              {t.noticeModal.compliance}
             </div>
           </div>
-
-          <ul className="list-disc list-inside space-y-1 text-slate-500 text-[11px]">
-            <li>Maintain continuous VHF radio watch on Channel 16.</li>
-            <li>Maintain a minimum 5 km navigational safety buffer from the International Maritime Boundary Line (IMBL).</li>
-          </ul>
         </div>
 
         <div className="pt-2">
@@ -52,7 +48,7 @@ export const NoticeModal: React.FC<NoticeModalProps> = ({ isOpen, onClose }) => 
             onClick={onClose}
             className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors"
           >
-            Acknowledge & Dismiss
+            {t.noticeModal.acknowledge}
           </button>
         </div>
       </div>

@@ -38,7 +38,7 @@ import { getTranslation } from './services/i18n';
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('copilot'); // Default to AI Copilot & Map
   const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
-  const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
   const [isNoticeOpen, setIsNoticeOpen] = useState<boolean>(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState<boolean>(false);
   const [mobileCopilotView, setMobileCopilotView] = useState<'both' | 'copilot' | 'map'>('both');
@@ -363,7 +363,7 @@ export function App() {
                 }`}
               >
                 <MessageSquare className="w-3.5 h-3.5" />
-                <span>Copilot Chat</span>
+                <span>{t.map.mobile_copilot}</span>
               </button>
 
               <button
@@ -376,7 +376,7 @@ export function App() {
                 }`}
               >
                 <Compass className="w-3.5 h-3.5" />
-                <span>Interactive Map</span>
+                <span>{t.map.mobile_map}</span>
               </button>
 
               <button
@@ -389,7 +389,7 @@ export function App() {
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
-                <span>Split View</span>
+                <span>{t.map.mobile_both}</span>
               </button>
             </div>
 
@@ -441,6 +441,7 @@ export function App() {
                   onSelectZone={handleSelectZone}
                   onUpdateLocation={handleUpdateLocation}
                   onOpenLocationModal={() => setIsLocationModalOpen(true)}
+                  selectedLanguage={selectedLanguage}
                 />
               </div>
             </div>
@@ -464,6 +465,7 @@ export function App() {
           <PFZView
             zones={pfzZones}
             vesselLocation={vesselLocation}
+            selectedLanguage={selectedLanguage}
             onPlotRoute={(zone) => {
               setActiveTab('copilot');
               setMapFocus({ latitude: zone.latitude, longitude: zone.longitude, zoom: 12 });
@@ -473,13 +475,14 @@ export function App() {
 
         {/* Tab 4: Safety & Marine Risk Center */}
         {activeTab === 'risk' && (
-          <RiskCenter weather={weather} />
+          <RiskCenter weather={weather} selectedLanguage={selectedLanguage} />
         )}
 
         {/* Tab 5: Safe Route Planning & Comparison */}
         {activeTab === 'routes' && (
           <RouteView
             routeData={routesData}
+            selectedLanguage={selectedLanguage}
             onSelectRouteOnMap={(r) => {
               setActiveTab('copilot');
               if (r.waypoints.length > 0) {
@@ -493,6 +496,7 @@ export function App() {
         {activeTab === 'geofence' && (
           <GeofenceView
             geofences={geofences}
+            selectedLanguage={selectedLanguage}
             currentStatus={
               currentChatResponse?.geofence_status || {
                 is_inside: false,
@@ -510,12 +514,12 @@ export function App() {
 
         {/* Tab 7: Marine Alert Center */}
         {activeTab === 'alerts' && (
-          <AlertCenter alerts={alerts} />
+          <AlertCenter alerts={alerts} selectedLanguage={selectedLanguage} />
         )}
 
         {/* Tab 8: Oceanographic Observation Analytics */}
         {activeTab === 'analytics' && (
-          <AnalyticsView />
+          <AnalyticsView selectedLanguage={selectedLanguage} />
         )}
       </main>
 
@@ -525,15 +529,15 @@ export function App() {
           <div className="flex flex-wrap items-center gap-2.5 leading-none">
             <span className="inline-flex items-center gap-1.5 text-emerald-700 font-semibold bg-emerald-50 px-2 py-1 rounded border border-emerald-200 leading-none">
               <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-              10 Specialized AI Agents Online
+              {t.footer.agents_online}
             </span>
             <span className="text-slate-300">•</span>
             <span className="leading-none text-slate-600">
-              Position: <strong className="text-slate-900 font-mono">{vesselLocation.latitude.toFixed(4)}°N, {vesselLocation.longitude.toFixed(4)}°E</strong>
+              {t.footer.position}: <strong className="text-slate-900 font-mono">{vesselLocation.latitude.toFixed(4)}°N, {vesselLocation.longitude.toFixed(4)}°E</strong>
             </span>
             <span className="text-slate-300">•</span>
             <span className="leading-none text-slate-600">
-              <strong className="text-slate-900">{isDemoMode ? t.footer.mode : 'Telemetry: Live Satellite Stream'}</strong>
+              <strong className="text-slate-900">{isDemoMode ? t.footer.mode : `Telemetry: ${t.common.live} Satellite Stream`}</strong>
             </span>
           </div>
 
@@ -551,7 +555,7 @@ export function App() {
       </footer>
 
       {/* Statutory Safety Notice Modal */}
-      <NoticeModal isOpen={isNoticeOpen} onClose={() => setIsNoticeOpen(false)} />
+      <NoticeModal isOpen={isNoticeOpen} onClose={() => setIsNoticeOpen(false)} selectedLanguage={selectedLanguage} />
 
       {/* Vessel Location & Sector Modal */}
       <LocationModal
@@ -559,6 +563,7 @@ export function App() {
         onClose={() => setIsLocationModalOpen(false)}
         currentLocation={vesselLocation}
         onUpdateLocation={handleUpdateLocation}
+        selectedLanguage={selectedLanguage}
       />
     </div>
   );

@@ -1,8 +1,10 @@
 // frontend/src/components/LocationModal.tsx
 import React, { useState } from 'react';
 import { MapPin, Navigation, Compass, X, Check, Crosshair, AlertCircle } from 'lucide-react';
+import { getTranslation } from '../services/i18n';
 
 interface LocationModalProps {
+  selectedLanguage?: string;
   isOpen: boolean;
   onClose: () => void;
   currentLocation: { latitude: number; longitude: number; name?: string; heading_deg?: number };
@@ -79,8 +81,10 @@ export const LocationModal: React.FC<LocationModalProps> = ({
   isOpen,
   onClose,
   currentLocation,
-  onUpdateLocation
+  onUpdateLocation,
+  selectedLanguage = "en"
 }) => {
+  const t = getTranslation(selectedLanguage);
   const [latInput, setLatInput] = useState(currentLocation.latitude.toString());
   const [lonInput, setLonInput] = useState(currentLocation.longitude.toString());
   const [nameInput, setNameInput] = useState(currentLocation.name || 'Custom Vessel Waypoint');
@@ -279,7 +283,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <div>
                 <label className="block text-[10px] font-mono text-slate-500 uppercase mb-1">
-                  Latitude (°N)
+                  {t.locationModal.latitude}
                 </label>
                 <input
                   type="number"
@@ -294,7 +298,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
 
               <div>
                 <label className="block text-[10px] font-mono text-slate-500 uppercase mb-1">
-                  Longitude (°E)
+                  {t.locationModal.longitude}
                 </label>
                 <input
                   type="number"

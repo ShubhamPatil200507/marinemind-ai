@@ -2,14 +2,22 @@
 import React, { useState } from 'react';
 import { Anchor, ArrowRight, CheckCircle2, AlertOctagon, MapPin, Fish, Navigation } from 'lucide-react';
 import type { PFZZone } from '../types/marine';
+import { getTranslation } from '../services/i18n';
 
 interface PFZViewProps {
   zones: PFZZone[];
   vesselLocation?: { latitude: number; longitude: number; name?: string };
   onPlotRoute?: (zone: PFZZone) => void;
+  selectedLanguage?: string;
 }
 
-export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, onPlotRoute }) => {
+export const PFZView: React.FC<PFZViewProps> = ({
+  zones = [],
+  vesselLocation,
+  onPlotRoute,
+  selectedLanguage = 'en'
+}) => {
+  const t = getTranslation(selectedLanguage);
   const [filter, setFilter] = useState<'all' | 'recommended' | 'safe'>('all');
   const [selectedZoneId, setSelectedZoneId] = useState<string>(zones[0]?.id || '');
 
@@ -30,16 +38,16 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-lg font-bold text-slate-900 tracking-tight">
-              Potential Fishing Zones (PFZ)
+              {t.pfz.title}
             </h1>
             <span className="text-xs font-medium text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-              {zones.length} Zones Available
+              {zones.length} {t.pfz.zones_available}
             </span>
           </div>
           <div className="text-xs text-slate-500 mt-1 flex items-center gap-2">
             <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0" />
             <span>
-              Sector: <strong>{vesselLocation?.name || 'Local Waters'}</strong>
+              {t.pfz.sector_label}: <strong>{vesselLocation?.name || 'Local Waters'}</strong>
               {vesselLocation && ` (${vesselLocation.latitude.toFixed(2)}°N, ${vesselLocation.longitude.toFixed(2)}°E)`}
             </span>
           </div>
@@ -54,7 +62,7 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
               filter === 'all' ? 'bg-white text-slate-900 shadow-2xs font-semibold' : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            All Zones
+            {t.pfz.all_zones}
           </button>
           <button
             type="button"
@@ -63,7 +71,7 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
               filter === 'recommended' ? 'bg-white text-emerald-700 shadow-2xs font-semibold' : 'text-slate-600 hover:text-emerald-700'
             }`}
           >
-            Recommended
+            {t.pfz.recommended_filter}
           </button>
           <button
             type="button"
@@ -72,7 +80,7 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
               filter === 'safe' ? 'bg-white text-blue-700 shadow-2xs font-semibold' : 'text-slate-600 hover:text-blue-700'
             }`}
           >
-            Calm Waters
+            {t.pfz.calm_waters}
           </button>
         </div>
       </div>
@@ -88,27 +96,27 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
                   <span className="font-bold text-sm text-slate-900">{topZone.name}</span>
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
-                  TOP CATCH
+                  {t.common.recommended.toUpperCase()}
                 </span>
               </div>
 
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-mono mb-2.5">
                 <div className="p-1.5 sm:p-2 rounded bg-white border border-emerald-200/80">
-                  <div className="text-[10px] text-slate-400">Distance</div>
-                  <div className="font-bold text-slate-900">{topZone.distance_km} km</div>
+                  <div className="text-[10px] text-slate-400">{t.pfz.th_distance}</div>
+                  <div className="font-bold text-slate-900">{topZone.distance_km} {t.common.km}</div>
                 </div>
                 <div className="p-1.5 sm:p-2 rounded bg-white border border-emerald-200/80">
-                  <div className="text-[10px] text-slate-400">Catch Score</div>
+                  <div className="text-[10px] text-slate-400">{t.pfz.score_label}</div>
                   <div className="font-bold text-emerald-700">{topZone.productivity_score}/100</div>
                 </div>
                 <div className="p-1.5 sm:p-2 rounded bg-white border border-emerald-200/80">
-                  <div className="text-[10px] text-slate-400">Sea State</div>
-                  <div className="font-bold text-emerald-700 truncate">{topZone.wave_risk === 'LOW' ? 'Calm (1.2m)' : 'Moderate'}</div>
+                  <div className="text-[10px] text-slate-400">{t.risk.th_status}</div>
+                  <div className="font-bold text-emerald-700 truncate">{topZone.wave_risk === 'LOW' ? `${t.common.safe} (1.2${t.common.m})` : t.common.moderate}</div>
                 </div>
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
-                {topZone.description}
+                {t.pfz.contrast_recommended_desc}
               </p>
             </div>
 
@@ -121,7 +129,7 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
                 onClick={() => onPlotRoute?.(topZone)}
                 className="px-2.5 sm:px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1.5 shrink-0"
               >
-                <span>View on Map</span>
+                <span>{t.pfz.inspect_map}</span>
                 <ArrowRight className="w-3 h-3" />
               </button>
             </div>
@@ -137,35 +145,35 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
                   <span className="font-bold text-sm text-slate-900">{hazardZone.name}</span>
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-800 border border-rose-300">
-                  AVOID (HAZARD)
+                  {t.common.avoid.toUpperCase()}
                 </span>
               </div>
 
               <div className="grid grid-cols-3 gap-1.5 sm:gap-2 text-[11px] sm:text-xs font-mono mb-2.5">
                 <div className="p-1.5 sm:p-2 rounded bg-white border border-rose-200/80">
-                  <div className="text-[10px] text-slate-400">Distance</div>
-                  <div className="font-bold text-slate-900">{hazardZone.distance_km} km</div>
+                  <div className="text-[10px] text-slate-400">{t.pfz.th_distance}</div>
+                  <div className="font-bold text-slate-900">{hazardZone.distance_km} {t.common.km}</div>
                 </div>
                 <div className="p-1.5 sm:p-2 rounded bg-white border border-rose-200/80">
-                  <div className="text-[10px] text-slate-400">Catch Score</div>
+                  <div className="text-[10px] text-slate-400">{t.pfz.score_label}</div>
                   <div className="font-bold text-slate-700">{hazardZone.productivity_score}/100</div>
                 </div>
                 <div className="p-1.5 sm:p-2 rounded bg-white border border-rose-200/80">
-                  <div className="text-[10px] text-slate-400">Wave Swell</div>
-                  <div className="font-bold text-rose-600 truncate">High Swell</div>
+                  <div className="text-[10px] text-slate-400">{t.risk.factor_waves}</div>
+                  <div className="font-bold text-rose-600 truncate">{t.common.high_risk}</div>
                 </div>
               </div>
 
               <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
-                {hazardZone.description}
+                {t.pfz.contrast_avoid_desc}
               </p>
             </div>
 
             <div className="mt-3 pt-2.5 border-t border-rose-200/60 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
               <span className="text-xs text-rose-800 font-medium">
-                Hazardous swell breaks over shallow reef shoals
+                {t.dashboard.scenario_highlights.s2}
               </span>
-              <span className="text-xs font-bold text-rose-700 shrink-0">DO NOT NAVIGATE</span>
+              <span className="text-xs font-bold text-rose-700 shrink-0">{t.common.avoid.toUpperCase()}</span>
             </div>
           </div>
         )}
@@ -177,7 +185,7 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
         <div className="lg:col-span-2 space-y-3">
           {filteredZones.length === 0 ? (
             <div className="p-8 text-center bg-white rounded-xl border border-slate-200 text-slate-500 text-xs">
-              No zones match this filter. Select "All Zones" to view regional data.
+              {t.pfz.all_zones}
             </div>
           ) : (
             filteredZones.map((zone) => {
@@ -199,7 +207,7 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
                       <Anchor className={`w-4 h-4 ${isAvoid ? 'text-rose-500' : 'text-emerald-600'} shrink-0`} />
                       <span className="font-bold text-sm text-slate-900">{zone.name}</span>
                       <span className="font-mono text-xs text-slate-500 font-normal">
-                        ({zone.distance_km.toFixed(1)} km)
+                        ({zone.distance_km.toFixed(1)} {t.common.km})
                       </span>
                     </div>
 
@@ -210,37 +218,37 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
                           : 'bg-emerald-50 text-emerald-700 border-emerald-200'
                       }`}
                     >
-                      {isAvoid ? 'AVOID' : 'RECOMMENDED'}
+                      {isAvoid ? t.common.avoid.toUpperCase() : t.common.recommended.toUpperCase()}
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono mb-2">
                     <div className="bg-slate-50 p-1.5 rounded border border-slate-100">
-                      <div className="text-[10px] text-slate-400">Score</div>
+                      <div className="text-[10px] text-slate-400">{t.pfz.score_label}</div>
                       <div className="font-bold text-slate-800">{zone.productivity_score}/100</div>
                     </div>
                     <div className="bg-slate-50 p-1.5 rounded border border-slate-100">
-                      <div className="text-[10px] text-slate-400">Temp (SST)</div>
+                      <div className="text-[10px] text-slate-400">{t.pfz.th_sst}</div>
                       <div className="font-bold text-slate-800">{zone.sst_c}°C</div>
                     </div>
                     <div className="bg-slate-50 p-1.5 rounded border border-slate-100">
-                      <div className="text-[10px] text-slate-400">Chlorophyll</div>
+                      <div className="text-[10px] text-slate-400">{t.pfz.th_chl}</div>
                       <div className="font-bold text-slate-800">{zone.chlorophyll_mg_m3} mg/m³</div>
                     </div>
                     <div className="bg-slate-50 p-1.5 rounded border border-slate-100">
-                      <div className="text-[10px] text-slate-400">Wave Risk</div>
+                      <div className="text-[10px] text-slate-400">{t.risk.th_risk}</div>
                       <div className={`font-bold ${isAvoid ? 'text-rose-600' : 'text-emerald-600'}`}>
-                        {zone.wave_risk}
+                        {isAvoid ? t.common.high_risk : t.common.safe}
                       </div>
                     </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 pt-1 gap-1">
                     <span className="truncate max-w-full sm:max-w-[70%]">
-                      Species: <strong className="text-slate-700 font-medium">{zone.target_species.join(', ')}</strong>
+                      {t.pfz.th_species}: <strong className="text-slate-700 font-medium">{zone.target_species.join(', ')}</strong>
                     </span>
                     <span className="font-mono text-[11px] text-slate-400 shrink-0">
-                      Depth: {zone.ocean_depth_m}m
+                      {t.pfz.th_depth}: {zone.ocean_depth_m}{t.common.m}
                     </span>
                   </div>
                 </div>
@@ -253,7 +261,7 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
         {activeZone && (
           <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-xs space-y-4 h-fit">
             <div className="pb-3 border-b border-slate-100">
-              <div className="text-[10px] font-mono text-slate-400 uppercase">Selected Zone</div>
+              <div className="text-[10px] font-mono text-slate-400 uppercase">{t.pfz.th_zone}</div>
               <h3 className="text-base font-bold text-slate-900 mt-0.5">{activeZone.name}</h3>
               <div className="text-xs font-mono text-slate-500 mt-0.5">
                 {activeZone.latitude.toFixed(4)}°N, {activeZone.longitude.toFixed(4)}°E
@@ -262,29 +270,29 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
 
             <div className="space-y-2 text-xs">
               <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Distance from Vessel</span>
-                <span className="font-mono font-bold text-slate-800">{activeZone.distance_km.toFixed(1)} km</span>
+                <span className="text-slate-500">{t.pfz.th_distance}</span>
+                <span className="font-mono font-bold text-slate-800">{activeZone.distance_km.toFixed(1)} {t.common.km}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Catch Productivity Score</span>
+                <span className="text-slate-500">{t.pfz.score_label}</span>
                 <span className="font-mono font-bold text-emerald-600">{activeZone.productivity_score} / 100</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Sea Surface Temperature</span>
+                <span className="text-slate-500">{t.pfz.th_sst}</span>
                 <span className="font-mono font-bold text-slate-800">{activeZone.sst_c}°C</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Chlorophyll Density</span>
+                <span className="text-slate-500">{t.pfz.th_chl}</span>
                 <span className="font-mono font-bold text-slate-800">{activeZone.chlorophyll_mg_m3} mg/m³</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Seafloor Depth</span>
-                <span className="font-mono font-bold text-slate-800">{activeZone.ocean_depth_m} meters</span>
+                <span className="text-slate-500">{t.pfz.th_depth}</span>
+                <span className="font-mono font-bold text-slate-800">{activeZone.ocean_depth_m} {t.common.m}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-slate-100">
-                <span className="text-slate-500">Wave Condition</span>
+                <span className="text-slate-500">{t.risk.th_status}</span>
                 <span className={`font-mono font-bold ${activeZone.wave_risk === 'HIGH' ? 'text-rose-600' : 'text-emerald-600'}`}>
-                  {activeZone.wave_risk}
+                  {activeZone.wave_risk === 'HIGH' ? t.common.high_risk : t.common.safe}
                 </span>
               </div>
             </div>
@@ -292,7 +300,7 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
             <div className="p-3 rounded-lg bg-slate-50 border border-slate-200 text-xs">
               <div className="font-semibold text-slate-700 mb-1 flex items-center gap-1.5">
                 <Fish className="w-3.5 h-3.5 text-blue-600" />
-                <span>Commercial Target Species:</span>
+                <span>{t.pfz.target_species}:</span>
               </div>
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 {activeZone.target_species.map((sp, idx) => (
@@ -304,7 +312,7 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
             </div>
 
             <p className="text-xs text-slate-600 leading-relaxed">
-              {activeZone.description}
+              {activeZone.recommendation === 'AVOID' ? t.pfz.contrast_avoid_desc : t.pfz.contrast_recommended_desc}
             </p>
 
             {activeZone.recommendation !== 'AVOID' ? (
@@ -314,11 +322,11 @@ export const PFZView: React.FC<PFZViewProps> = ({ zones = [], vesselLocation, on
                 className="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <Navigation className="w-3.5 h-3.5" />
-                <span>View on Map & Plot Route</span>
+                <span>{t.pfz.plot_route}</span>
               </button>
             ) : (
               <div className="w-full py-2 text-center text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
-                Navigation Warning: Area Avoided
+                {t.common.avoid.toUpperCase()}
               </div>
             )}
           </div>

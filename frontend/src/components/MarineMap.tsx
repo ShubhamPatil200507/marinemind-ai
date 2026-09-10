@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import type { PFZZone, RouteOption, GeofenceZone, GeofenceCheckResult } from '../types/marine';
 import { Layers, Compass, Navigation, AlertTriangle, MapPin, Check, Crosshair } from 'lucide-react';
+import { getTranslation } from '../services/i18n';
 
 interface MarineMapProps {
+  selectedLanguage?: string;
   vesselLocation: { latitude: number; longitude: number; heading_deg?: number; name?: string };
   pfzZones: PFZZone[];
   routes: RouteOption[];
@@ -17,6 +19,7 @@ interface MarineMapProps {
 }
 
 export const MarineMap: React.FC<MarineMapProps> = ({
+  selectedLanguage = "en",
   vesselLocation,
   pfzZones,
   routes,
@@ -27,6 +30,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
   onUpdateLocation,
   onOpenLocationModal
 }) => {
+  const t = getTranslation(selectedLanguage);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const [relocatedToast, setRelocatedToast] = useState<string | null>(null);
@@ -441,7 +445,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
               />
               <span className="flex items-center gap-1.5 text-[11px] font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                PFZ Hotspots
+                {t.map.layer_pfz}
               </span>
             </label>
 
@@ -454,7 +458,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
               />
               <span className="flex items-center gap-1.5 text-[11px] font-medium">
                 <span className="w-2.5 h-1 rounded bg-blue-600"></span>
-                Safe Fairway Routes
+                {t.map.layer_routes}
               </span>
             </label>
 
@@ -467,7 +471,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
               />
               <span className="flex items-center gap-1.5 text-[11px] font-medium">
                 <span className="w-2.5 h-1 rounded bg-amber-500"></span>
-                IMBL & Defense Perimeters
+                {t.map.layer_borders}
               </span>
             </label>
 
@@ -480,7 +484,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
               />
               <span className="flex items-center gap-1.5 text-[11px] font-medium">
                 <span className="w-2.5 h-2.5 rounded bg-orange-400 opacity-60"></span>
-                Wave Swell Breakers
+                {t.map.layer_swell}
               </span>
             </label>
 
@@ -493,7 +497,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
               />
               <span className="flex items-center gap-1.5 text-[11px] font-medium">
                 <span className="w-2.5 h-2.5 rounded bg-sky-400 opacity-60"></span>
-                SST Thermal Fronts
+                {t.map.layer_thermal}
               </span>
             </label>
           </div>
@@ -512,7 +516,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
           className="h-7 sm:h-8 px-2 sm:px-3 rounded-lg bg-white/95 backdrop-blur-md hover:bg-slate-50 text-slate-700 font-semibold text-[11px] sm:text-xs border border-slate-300 inline-flex items-center justify-center gap-1 sm:gap-1.5 shadow-sm transition-colors leading-none"
         >
           <Compass className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-blue-600 shrink-0" />
-          <span className="leading-none">Vessel</span>
+          <span className="leading-none">{t.map.vessel}</span>
         </button>
 
         <button
@@ -525,7 +529,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
           className="h-7 sm:h-8 px-2 sm:px-3 rounded-lg bg-white/95 backdrop-blur-md hover:bg-slate-50 text-slate-700 font-semibold text-[11px] sm:text-xs border border-slate-300 inline-flex items-center justify-center gap-1 sm:gap-1.5 shadow-sm transition-colors leading-none"
         >
           <Navigation className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-emerald-600 shrink-0" />
-          <span className="leading-none">Top PFZ</span>
+          <span className="leading-none">{t.map.top_pfz}</span>
         </button>
 
         {onOpenLocationModal && (
@@ -535,7 +539,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
             className="h-7 sm:h-8 px-2 sm:px-3 rounded-lg bg-white/95 backdrop-blur-md hover:bg-blue-50 text-blue-700 font-semibold text-[11px] sm:text-xs border border-blue-200 inline-flex items-center justify-center gap-1 sm:gap-1.5 shadow-sm transition-colors leading-none"
           >
             <MapPin className="w-3 sm:w-3.5 h-3 sm:h-3.5 text-blue-600 shrink-0" />
-            <span className="leading-none">GPS Sector</span>
+            <span className="leading-none">{t.map.gps_sector}</span>
           </button>
         )}
 
@@ -550,7 +554,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
           }`}
         >
           <Crosshair className={`w-3 sm:w-3.5 h-3 sm:h-3.5 shrink-0 ${isPinMode ? 'text-white animate-spin' : 'text-slate-600'}`} />
-          <span className="leading-none">{isPinMode ? 'Click Map' : 'Set Pin'}</span>
+          <span className="leading-none">{t.map.set_pin}</span>
         </button>
       </div>
 

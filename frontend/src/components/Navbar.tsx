@@ -32,14 +32,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   const t = getTranslation(selectedLanguage);
 
   const navItems = [
-    { id: 'dashboard', label: t.nav.dashboard, shortLabel: 'Ops', icon: Compass },
-    { id: 'copilot', label: t.nav.copilot, shortLabel: 'Copilot', icon: Navigation },
-    { id: 'pfz', label: t.nav.pfz, shortLabel: 'PFZ', icon: Anchor },
-    { id: 'risk', label: t.nav.risk, shortLabel: 'Risk', icon: ShieldAlert },
-    { id: 'routes', label: t.nav.routes, shortLabel: 'Routes', icon: MapPin },
-    { id: 'geofence', label: t.nav.geofence, shortLabel: 'Bounds', icon: ShieldCheck },
-    { id: 'alerts', label: t.nav.alerts, shortLabel: 'Alerts', icon: Bell },
-    { id: 'analytics', label: t.nav.analytics, shortLabel: 'Ocean', icon: BarChart3 }
+    { id: 'dashboard', label: t.nav.dashboard, shortLabel: t.nav.short_ops, icon: Compass },
+    { id: 'copilot', label: t.nav.copilot, shortLabel: t.nav.short_copilot, icon: Navigation },
+    { id: 'pfz', label: t.nav.pfz, shortLabel: t.nav.short_pfz, icon: Anchor },
+    { id: 'risk', label: t.nav.risk, shortLabel: t.nav.short_risk, icon: ShieldAlert },
+    { id: 'routes', label: t.nav.routes, shortLabel: t.nav.short_routes, icon: MapPin },
+    { id: 'geofence', label: t.nav.geofence, shortLabel: t.nav.short_geofence, icon: ShieldCheck },
+    { id: 'alerts', label: t.nav.alerts, shortLabel: t.nav.short_alerts, icon: Bell },
+    { id: 'analytics', label: t.nav.analytics, shortLabel: t.nav.short_analytics, icon: BarChart3 }
   ];
 
   return (
@@ -89,7 +89,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Location Button */}
             <button
               onClick={onOpenLocationModal}
-              title="Set Vessel Location & Operating Sector"
+              title={t.locationModal.title}
               className="h-8 px-1.5 sm:px-2.5 inline-flex items-center justify-center gap-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium transition-colors shrink-0 max-w-[65px] sm:max-w-[130px] xl:max-w-[150px]"
             >
               <MapPin className="w-3.5 h-3.5 text-blue-400 shrink-0" />
@@ -101,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Mode Toggle */}
             <button
               onClick={() => setIsDemoMode(!isDemoMode)}
-              title={isDemoMode ? 'Mode: Simulated Stream' : 'Mode: Live Stream'}
+              title={isDemoMode ? t.common.simulated : t.common.live}
               className={`h-8 px-2 sm:px-2.5 rounded-lg text-xs font-mono inline-flex items-center justify-center gap-1 sm:gap-1.5 border transition-colors leading-none shrink-0 ${
                 isDemoMode
                   ? 'bg-amber-950/40 border-amber-500/50 text-amber-300'
@@ -109,7 +109,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <Radio className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline leading-none">{isDemoMode ? 'Simulated' : 'Live'}</span>
+              <span className="hidden sm:inline leading-none">{isDemoMode ? t.common.simulated : t.common.live}</span>
             </button>
 
             {/* Language Select (Unified pill matching other controls) */}
