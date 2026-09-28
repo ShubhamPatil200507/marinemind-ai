@@ -5,6 +5,7 @@ import {
   ArrowRight, KeyRound, User, Phone, MapPin, CheckCircle2, AlertCircle, ChevronDown, ShieldAlert
 } from 'lucide-react';
 import { getTranslation } from '../services/i18n';
+import { API_BASE } from '../services/api';
 
 export interface UserProfile {
   id: string;
@@ -49,7 +50,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
     setLoading(true);
 
     try {
-      const resp = await fetch('http://127.0.0.1:8000/api/auth/login', {
+      const resp = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -82,7 +83,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
     setLoading(true);
 
     try {
-      const resp = await fetch('http://127.0.0.1:8000/api/auth/register', {
+      const resp = await fetch(`${API_BASE}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -112,7 +113,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
     setErrorMsg(null);
     setLoading(true);
     try {
-      const resp = await fetch('http://127.0.0.1:8000/api/auth/guest-access', { method: 'POST' });
+      const resp = await fetch(`${API_BASE}/auth/guest-access`, { method: 'POST' });
       if (resp.ok) {
         const data: UserProfile = await resp.json();
         onLogin(data);
