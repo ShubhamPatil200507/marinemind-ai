@@ -71,8 +71,14 @@ def calculate_marine_risk(
 
     # 4. Cyclone Risk Component (0 - 100)
     # cyclone_status is an explicit enum — UNKNOWN means source unavailable
-    from backend.models.schemas import CycloneStatus
+    from backend.models.schemas import CycloneStatus, DataStatus
     data_gaps = []
+
+    # Check if weather telemetry is unavailable
+    w_prov = getattr(weather, 'provenance', None)
+    if w_prov and getattr(w_prov, 'status', None) == DataStatus.UNAVAILABLE:
+        data_gaps.append("Weather telemetry source unavailable — baseline estimates utilized")
+
     cyclone_status = getattr(weather, 'cyclone_status', None)
     if cyclone_status == CycloneStatus.ACTIVE_CYCLONE:
         cyclone_component = 100.0
@@ -127,9 +133,15 @@ def calculate_marine_risk(
     )
 
     # Classify Risk Category
-    if final_score <= 25.0:
+    if geofence.is_inside:
+        final_score = max(final_score, 85.0)
+        risk_category = "CRITICAL"
+        recommendation = f"CRITICAL GEOFENCE ALERT: Vessel inside restricted perimeter ({geofence.nearest_zone_name}). Cease operations and alter course immediately."
+    elif final_score <= 25.0:
         risk_category = "LOW"
         recommendation = "Safe marine conditions. Favorable for full-day coastal and offshore operations."
+        if data_gaps:
+            recommendation += " (Note: Real-time telemetry partially unverified. Check local port advisories.)"
     elif final_score <= 50.0:
         risk_category = "MODERATE"
         recommendation = "Proceed with caution. Safe close to shore (06:00 - 10:30 AM); avoid offshore operations after 11:00 AM as swell increases."

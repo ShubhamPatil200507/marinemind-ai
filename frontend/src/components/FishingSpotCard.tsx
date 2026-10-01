@@ -1,6 +1,9 @@
+// frontend/src/components/FishingSpotCard.tsx
+// High-contrast, tactile fishing spot card for outdoor maritime use
 import React from 'react';
-import { Map, Navigation } from 'lucide-react';
+import { Map, Navigation, Waves, Fish, Compass } from 'lucide-react';
 import type { PFZZone } from '../types/marine';
+import { getFishermanTranslation } from '../services/fishermanI18n';
 
 interface FishingSpotCardProps {
   zone: PFZZone;
@@ -9,103 +12,126 @@ interface FishingSpotCardProps {
   language: string;
 }
 
-// ─── i18n ────────────────────────────────────────────────────────────────────
+export function FishingSpotCard({
+  zone,
+  onViewMap,
+  onPlanRoute,
+  language,
+}: FishingSpotCardProps) {
+  const t = getFishermanTranslation(language);
 
-const TEXT: Record<string, Record<string, string>> = {
-  good_fishing:      { en: 'Good Fishing Area',              hi: 'अच्छा मछली पकड़ने का क्षेत्र', mr: 'चांगले मासेमारी क्षेत्र',          ta: 'நல்ல மீன்பிடி பகுதி'         },
-  fishing_possible:  { en: 'Fishing Possible — Be Careful',  hi: 'मछली पकड़ना संभव — सावधान रहें', mr: 'मासेमारी शक्य — काळजी घ्या',      ta: 'மீன்பிடிக்கலாம் — கவனமாக இருங்கள்' },
-  avoid:             { en: 'Avoid This Area',                hi: 'इस क्षेत्र से बचें',              mr: 'हा परिसर टाळा',                   ta: 'இந்த பகுதியை தவிர்க்கவும்'   },
-  km_away:           { en: 'km away',                        hi: 'किमी दूर',                        mr: 'किमी दूर',                        ta: 'கி.மீ தொலைவில்'              },
-  sea:               { en: 'Sea',                            hi: 'समुद्र',                           mr: 'समुद्र',                          ta: 'கடல்'                        },
-  calm:              { en: 'Calm',                           hi: 'शांत',                            mr: 'शांत',                            ta: 'அமைதி'                       },
-  rough:             { en: 'Rough',                          hi: 'उग्र',                            mr: 'खडबडीत',                         ta: 'கரடுமுரடான'                  },
-  moderate:          { en: 'Moderate',                       hi: 'मध्यम',                           mr: 'मध्यम',                           ta: 'மிதமான'                      },
-  target_species:    { en: 'Fish here',                      hi: 'यहाँ मछलियाँ',                   mr: 'इथे मासे',                        ta: 'இங்கு மீன்கள்'               },
-  view_map:          { en: 'View on Map',                    hi: 'मानचित्र पर देखें',              mr: 'नकाशावर पाहा',                    ta: 'வரைபடத்தில் பார்க்கவும்'     },
-  plan_route:        { en: 'Plan Route',                     hi: 'रास्ता बनाएं',                   mr: 'मार्ग तयार करा',                  ta: 'வழி திட்டமிடுங்கள்'           },
-};
+  // Status configuration
+  const rec = zone.recommendation?.toUpperCase() ?? '';
+  const isRecommended = rec === 'HIGHLY_RECOMMENDED' || rec === 'RECOMMENDED';
+  const isCaution = rec === 'PROCEED_WITH_CAUTION';
 
-const t = (key: string, lang: string): string =>
-  TEXT[key]?.[lang] ?? TEXT[key]?.['en'] ?? key;
+  const statusConfig = isRecommended
+    ? {
+        label: t.spots.good_fishing,
+        badge: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        border: 'border-l-4 border-l-emerald-500',
+      }
+    : isCaution
+    ? {
+        label: t.spots.fair_fishing,
+        badge: 'bg-amber-100 text-amber-800 border-amber-300',
+        border: 'border-l-4 border-l-amber-500',
+      }
+    : {
+        label: t.spots.avoid_area,
+        badge: 'bg-red-100 text-red-800 border-red-300',
+        border: 'border-l-4 border-l-red-500',
+      };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+  // Sea condition translation
+  const waveRisk = (zone.wave_risk || '').toLowerCase();
+  const seaLabel =
+    waveRisk === 'low' || waveRisk === 'none'
+      ? t.conditions.calm
+      : waveRisk === 'moderate' || waveRisk === 'medium'
+      ? t.conditions.moderate
+      : t.conditions.rough;
 
-function recommendationInfo(rec: string, lang: string): { label: string; textColor: string; borderColor: string; badgeBg: string } {
-  const r = rec?.toUpperCase() ?? '';
-  if (r === 'HIGHLY_RECOMMENDED' || r === 'RECOMMENDED') {
-    return { label: t('good_fishing', lang), textColor: 'text-emerald-700', borderColor: 'border-l-emerald-500', badgeBg: 'bg-emerald-100' };
-  }
-  if (r === 'PROCEED_WITH_CAUTION') {
-    return { label: t('fishing_possible', lang), textColor: 'text-amber-700', borderColor: 'border-l-amber-500', badgeBg: 'bg-amber-100' };
-  }
-  return { label: t('avoid', lang), textColor: 'text-red-700', borderColor: 'border-l-red-500', badgeBg: 'bg-red-100' };
-}
-
-function waveRiskLabel(risk: string, lang: string) {
-  const r = risk?.toLowerCase() ?? '';
-  if (r === 'low' || r === 'none') return t('calm', lang);
-  if (r === 'moderate' || r === 'medium') return t('moderate', lang);
-  return t('rough', lang);
-}
-
-// ─── Component ───────────────────────────────────────────────────────────────
-
-export function FishingSpotCard({ zone, onViewMap, onPlanRoute, language }: FishingSpotCardProps) {
-  const lang = ['en', 'hi', 'mr', 'ta'].includes(language) ? language : 'en';
-  const { label, textColor, borderColor, badgeBg } = recommendationInfo(zone.recommendation, lang);
-  const topSpecies = zone.target_species.slice(0, 2);
-  const seaCondition = waveRiskLabel(zone.wave_risk, lang);
+  const topSpecies = (zone.target_species || []).slice(0, 3);
 
   return (
-    <div className={`bg-white rounded-2xl shadow-sm border border-slate-100 border-l-4 ${borderColor} overflow-hidden`}>
-      <div className="p-4">
-        {/* Status badge */}
-        <span className={`inline-block px-3 py-1 rounded-full text-sm font-bold ${badgeBg} ${textColor} mb-2`}>
-          {label}
-        </span>
+    <div
+      className={`bg-white rounded-2xl border border-slate-200 ${statusConfig.border} shadow-2xs hover:shadow-xs transition-all overflow-hidden`}
+    >
+      <div className="p-4 sm:p-5 space-y-3.5">
+        {/* Top Header: Name & Recommendation Badge */}
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <span
+              className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold border ${statusConfig.badge} mb-1.5`}
+            >
+              {statusConfig.label}
+            </span>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-tight">
+              {zone.name}
+            </h3>
+          </div>
 
-        {/* Zone name */}
-        <h3 className="text-base font-semibold text-slate-800 mb-3 leading-tight">{zone.name}</h3>
-
-        {/* Meta row */}
-        <div className="flex flex-wrap gap-3 mb-4">
-          <div className="flex items-center gap-1">
-            <span className="text-slate-400 text-xs">📍</span>
-            <span className="text-sm text-slate-600">
-              {zone.distance_km.toFixed(1)} {t('km_away', lang)}
+          <div className="text-right shrink-0">
+            <span className="text-xs font-mono font-bold text-blue-700 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">
+              📍 {zone.distance_km.toFixed(1)} {t.spots.km_away}
             </span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="text-slate-400 text-xs">🌊</span>
-            <span className="text-sm text-slate-600">
-              {t('sea', lang)}: {seaCondition}
-            </span>
-          </div>
-          {topSpecies.length > 0 && (
-            <div className="flex items-center gap-1">
-              <span className="text-slate-400 text-xs">🐟</span>
-              <span className="text-sm text-slate-600">
-                {t('target_species', lang)}: {topSpecies.join(', ')}
-              </span>
-            </div>
-          )}
         </div>
 
-        {/* Action buttons */}
-        <div className="flex gap-2">
+        {/* Marine Attributes Row */}
+        <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 bg-slate-50/80 p-2.5 rounded-xl border border-slate-100">
+          <div className="flex items-center gap-1.5">
+            <Waves className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+            <span>
+              {t.spots.sea_state}: <strong className="text-slate-800">{seaLabel}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            <Compass className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+            <span>
+              {t.spots.depth}: <strong className="text-slate-800">{zone.depth_m ?? 24}m</strong>
+            </span>
+          </div>
+        </div>
+
+        {/* Target Species List */}
+        {topSpecies.length > 0 && (
+          <div className="flex items-center gap-1.5 text-xs text-slate-600">
+            <Fish className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <span className="font-semibold text-slate-700">{t.spots.target_species}:</span>
+            <div className="flex flex-wrap gap-1">
+              {topSpecies.map((species, i) => (
+                <span
+                  key={i}
+                  className="bg-slate-100 text-slate-700 font-medium px-2 py-0.5 rounded-md text-[11px]"
+                >
+                  {species}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Action Touch Targets (Minimum 48px tactile buttons) */}
+        <div className="grid grid-cols-2 gap-2.5 pt-1">
           <button
+            type="button"
             onClick={onViewMap}
-            className="flex-1 flex items-center justify-center gap-1.5 min-h-[48px] border border-blue-500 text-blue-600 rounded-xl text-sm font-semibold active:bg-blue-50 transition-colors"
+            className="flex items-center justify-center gap-1.5 min-h-[48px] bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-800 rounded-xl text-xs sm:text-sm font-bold border border-slate-200 transition-colors"
           >
-            <Map size={16} />
-            {t('view_map', lang)}
+            <Map className="w-4 h-4 text-slate-600" />
+            <span>{t.spots.view_map}</span>
           </button>
+
           <button
+            type="button"
             onClick={onPlanRoute}
-            className="flex-1 flex items-center justify-center gap-1.5 min-h-[48px] bg-blue-600 text-white rounded-xl text-sm font-semibold active:bg-blue-700 transition-colors"
+            className="flex items-center justify-center gap-1.5 min-h-[48px] bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-colors"
           >
-            <Navigation size={16} />
-            {t('plan_route', lang)}
+            <Navigation className="w-4 h-4 text-white" />
+            <span>{t.spots.plan_route}</span>
           </button>
         </div>
       </div>

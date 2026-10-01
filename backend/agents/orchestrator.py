@@ -141,11 +141,31 @@ class Orchestrator:
             # Only agents listed in plan.required_agents are executed.
             # Each agent runs in isolation — failure = partial result.
             # =========================================================
-            required = set(plan.required_agents)
+            AVAILABLE_AGENTS = {
+                "weather_agent": "Weather Intelligence Agent",
+                "ocean_agent": "Ocean Analytics Agent",
+                "geospatial_agent": "Geospatial Reasoning Agent",
+                "pfz_agent": "PFZ Intelligence Agent",
+                "risk_agent": "Risk Assessment Agent",
+                "route_agent": "Safe Route Planning Agent"
+            }
+
+            required = set(plan.required_agents) if plan.required_agents else set(AVAILABLE_AGENTS.keys())
             execution_trace: List[AgentExecutionRecord] = []
             evidence_list: List[EvidenceItem] = []
             active_layers: List[str] = ["vessel"]
             data_warnings: List[str] = []
+
+            # Track any unknown agent requests safely without crashing
+            for requested in plan.required_agents:
+                if requested not in AVAILABLE_AGENTS:
+                    logger.warning(f"[Orchestrator] Unknown agent requested: {requested}")
+                    execution_trace.append(AgentExecutionRecord(
+                        agent=requested,
+                        status="skipped",
+                        summary=f"Unrecognized agent '{requested}' skipped safely",
+                        duration_ms=0
+                    ))
 
             # Default fallback data structures
             w_data = WeatherData()
@@ -156,7 +176,7 @@ class Orchestrator:
             r_data = None
 
             # ── Weather Agent ─────────────────────────────────────────
-            if "weather_agent" in required or not required:
+            if "weather_agent" in required:
                 w_res, w_rec = _run_agent(
                     "Weather Intelligence Agent",
                     self.weather_agent.execute,
@@ -188,7 +208,7 @@ class Orchestrator:
                 ))
 
             # ── Ocean Agent ───────────────────────────────────────────
-            if "ocean_agent" in required or not required:
+            if "ocean_agent" in required:
                 o_res, o_rec = _run_agent(
                     "Ocean Analytics Agent",
                     self.ocean_agent.execute,
@@ -213,7 +233,7 @@ class Orchestrator:
                 ))
 
             # ── Geospatial Agent ──────────────────────────────────────
-            if "geospatial_agent" in required or not required:
+            if "geospatial_agent" in required:
                 g_res, g_rec = _run_agent(
                     "Geospatial Reasoning Agent",
                     self.geospatial_agent.execute,
@@ -234,7 +254,7 @@ class Orchestrator:
                 ))
 
             # ── PFZ Agent ─────────────────────────────────────────────
-            if "pfz_agent" in required or not required:
+            if "pfz_agent" in required:
                 p_res, p_rec = _run_agent(
                     "PFZ Intelligence Agent",
                     self.pfz_agent.execute,
@@ -262,7 +282,7 @@ class Orchestrator:
                 ))
 
             # ── Risk Agent ────────────────────────────────────────────
-            if "risk_agent" in required or not required:
+            if "risk_agent" in required:
                 r_res, r_rec = _run_agent(
                     "Risk Assessment Agent",
                     self.risk_agent.execute,
@@ -282,7 +302,7 @@ class Orchestrator:
                 ))
 
             # ── Route Agent ───────────────────────────────────────────
-            if "route_agent" in required or not required:
+            if "route_agent" in required:
                 dest_lat = target_pfz.latitude if target_pfz else (v_lat + 0.08)
                 dest_lon = target_pfz.longitude if target_pfz else (v_lon - 0.08)
                 dest_name = target_pfz.name if target_pfz else "PFZ Alpha"

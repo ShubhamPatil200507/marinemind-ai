@@ -1,10 +1,12 @@
 // frontend/src/components/TripTab.tsx
+// 3-Step safe passage voyage planner for fishermen
 import React, { useState } from 'react';
 import {
-  Navigation, CheckCircle2, AlertTriangle, ShieldCheck, MapPin,
-  Clock, ArrowRight, Compass, ShieldAlert, Waves
+  Navigation, CheckCircle2, AlertTriangle, ShieldCheck,
+  Compass, ShieldAlert, Waves, Check
 } from 'lucide-react';
 import type { PFZZone, WeatherData, RouteOption } from '../types/marine';
+import { getFishermanTranslation } from '../services/fishermanI18n';
 
 interface TripTabProps {
   zones: PFZZone[];
@@ -17,35 +19,16 @@ interface TripTabProps {
   onPlanRoute: (zone: PFZZone) => Promise<void>;
 }
 
-const LABELS: Record<string, Record<string, string>> = {
-  title:            { en: 'Safe Trip Planner', hi: 'सुरक्षित यात्रा योजना', mr: 'सुरक्षित प्रवास नियोजन', ta: 'பாதுகாப்பான பயணத் திட்டம்' },
-  subtitle:         { en: 'Step-by-step route guidance with automatic reef & border avoidance', hi: 'चट्टानों और सीमा से बचने के लिए स्वचालित सुरक्षित मार्ग', mr: 'खडक आणि सागरी हद्द टाळणारा सुरक्षित मार्ग', ta: 'பாறைகள் மற்றும் எல்லைகளைத் தவிர்க்கும் பாதுகாப்பான வழி' },
-  step1:            { en: '1. Select Fishing Destination', hi: '1. गंतव्य स्थान चुनें', mr: '१. गंतव्य निवडा', ta: '1. இலக்கைத் தேர்ந்தெடுக்கவும்' },
-  step2:            { en: '2. Safety & Voyage Check', hi: '2. सुरक्षा जांच', mr: '२. सुरक्षितता तपासणी', ta: '2. பாதுகாப்பு சரிபார்ப்பு' },
-  step3:            { en: '3. Safe Route Calculated', hi: '3. सुरक्षित मार्ग तैयार', mr: '३. सुरक्षित मार्ग तयार', ta: '3. பாதுகாப்பான பாதை' },
-  est_time:         { en: 'Est. Transit Time', hi: 'अनुमानित यात्रा समय', mr: 'अंदाजे वेळ', ta: 'மதிப்பிடப்பட்ட நேரம்' },
-  distance:         { en: 'Distance', hi: 'दूरी', mr: 'अंतर', ta: 'தூரம்' },
-  sea:              { en: 'Sea State', hi: 'समुद्र स्थिति', mr: 'समुद्र स्थिती', ta: 'கடல் நிலை' },
-  wind:             { en: 'Wind Speed', hi: 'हवा की गति', mr: 'वाऱ्याचा वेग', ta: 'காற்று வேகம்' },
-  plan_btn:         { en: 'Check Conditions & Calculate Safe Route', hi: 'सुरक्षित मार्ग बनाएं', mr: 'सुरक्षित मार्ग तयार करा', ta: 'பாதுகாப்பான பாதையை உருவாக்குங்கள்' },
-  calculating:      { en: 'Analyzing safe passage...', hi: 'मार्ग की जाँच हो रही है...', mr: 'सुरक्षित मार्ग तपासत आहे...', ta: 'பாதை கணக்கிடப்படுகிறது...' },
-  recommended:      { en: 'Recommended Safe Route', hi: 'अनुशंसित सुरक्षित मार्ग', mr: 'शिफारस केलेला सुरक्षित मार्ग', ta: 'பரிந்துரைக்கப்பட்ட பாதை' },
-  alternative:      { en: 'Direct Alternative', hi: 'सीधा विकल्प (जोखिम भरा)', mr: 'पर्यायी थेट मार्ग', ta: 'மாற்றுப் பாதை' },
-  avoid_reason:     { en: 'Safety Advice', hi: 'सुरक्षा सलाह', mr: 'सुरक्षा सल्ला', ta: 'பாதுகாப்பு ஆலோசனை' },
-  select_prompt:    { en: 'Tap a fishing zone below to begin navigation check:', hi: 'शुरू करने के लिए नीचे किसी क्षेत्र पर टैप करें:', mr: 'सुरु करण्यासाठी खालील क्षेत्रावर टॅप करा:', ta: 'தொடங்க கீழே உள்ள பகுதியைத் தட்டவும்:' },
-};
-
 export const TripTab: React.FC<TripTabProps> = ({
   zones,
-  vesselLocation,
   weather,
   routes,
   language,
   selectedZone: initialZone,
   mapElement,
-  onPlanRoute
+  onPlanRoute,
 }) => {
-  const lang = ['en', 'hi', 'mr', 'ta'].includes(language) ? language : 'en';
+  const t = getFishermanTranslation(language);
 
   const [activeZone, setActiveZone] = useState<PFZZone | null>(
     initialZone || zones[0] || null
@@ -66,45 +49,116 @@ export const TripTab: React.FC<TripTabProps> = ({
     }
   };
 
-  // Safe travel time estimation (assuming ~12 knots = 22 km/h)
+  // Estimated travel time assuming ~12 knots (22 km/h) fishing trawler cruising speed
   const estMins = activeZone ? Math.round((activeZone.distance_km / 22) * 60) : 45;
 
+  // Step indicator state
+  const currentStep = routes.length > 0 ? 3 : activeZone ? 2 : 1;
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-4 space-y-5">
+    <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
       {/* ── Header ── */}
-      <header>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 flex items-center gap-2">
+      <header className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+        <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
           <Navigation className="w-5 h-5 text-blue-600" />
-          <span>{LABELS.title[lang]}</span>
+          <span>{t.trip.title}</span>
         </h1>
-        <p className="text-xs text-slate-500 mt-0.5">
-          {LABELS.subtitle[lang]}
+        <p className="text-xs text-slate-500 font-medium mt-0.5">
+          {t.trip.subtitle}
         </p>
+
+        {/* ── 3-Step Visual Progress Stepper ── */}
+        <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-100">
+          <div
+            className={`flex items-center gap-1.5 p-2 rounded-xl text-xs font-bold transition-colors ${
+              currentStep >= 1
+                ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                : 'bg-slate-50 text-slate-400'
+            }`}
+          >
+            <span
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+                currentStep > 1
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-blue-200 text-blue-800'
+              }`}
+            >
+              {currentStep > 1 ? <Check className="w-3 h-3" /> : '1'}
+            </span>
+            <span className="truncate">Destination</span>
+          </div>
+
+          <div
+            className={`flex items-center gap-1.5 p-2 rounded-xl text-xs font-bold transition-colors ${
+              currentStep >= 2
+                ? 'bg-blue-50 text-blue-800 border border-blue-200'
+                : 'bg-slate-50 text-slate-400'
+            }`}
+          >
+            <span
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+                currentStep > 2
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-blue-200 text-blue-800'
+              }`}
+            >
+              {currentStep > 2 ? <Check className="w-3 h-3" /> : '2'}
+            </span>
+            <span className="truncate">Safety Check</span>
+          </div>
+
+          <div
+            className={`flex items-center gap-1.5 p-2 rounded-xl text-xs font-bold transition-colors ${
+              currentStep === 3
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                : 'bg-slate-50 text-slate-400'
+            }`}
+          >
+            <span
+              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+                currentStep === 3
+                  ? 'bg-emerald-600 text-white'
+                  : 'bg-slate-200 text-slate-500'
+              }`}
+            >
+              3
+            </span>
+            <span className="truncate">Safe Route</span>
+          </div>
+        </div>
       </header>
 
-      {/* ── Embedded Map Section ── */}
+      {/* ── Interactive Route Map ── */}
       {mapElement && (
-        <section aria-label="Route Navigation Map" className="rounded-2xl overflow-hidden border border-slate-200 shadow-xs h-[260px] sm:h-[340px] w-full relative">
+        <section
+          aria-label="Route Navigation Map"
+          className="rounded-2xl overflow-hidden border-2 border-slate-200 shadow-2xs h-[260px] sm:h-[340px] w-full relative bg-slate-100"
+        >
           {mapElement}
         </section>
       )}
 
-      {/* ── Step 1: Select Destination ── */}
-      <section aria-label="Step 1 Destination Selection" className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3 shadow-xs">
+      {/* ── STEP 1: Select Destination Zone ── */}
+      <section
+        aria-label="Step 1 Destination Selection"
+        className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3.5 shadow-2xs"
+      >
         <div className="flex items-center justify-between">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            {LABELS.step1[lang]}
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            {t.trip.step1_title}
           </h2>
           {activeZone && (
-            <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+            <span className="text-xs font-bold text-emerald-800 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-300">
               ✓ {activeZone.name}
             </span>
           )}
         </div>
 
-        <p className="text-xs text-slate-600">{LABELS.select_prompt[lang]}</p>
+        <p className="text-xs text-slate-600 font-medium">
+          {t.trip.step1_sub}
+        </p>
 
-        {/* Zone chips */}
+        {/* Spot selection grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {zones.map((zone) => {
             const isSelected = activeZone?.id === zone.id;
@@ -113,26 +167,37 @@ export const TripTab: React.FC<TripTabProps> = ({
                 key={zone.id}
                 type="button"
                 onClick={() => handleSelectZone(zone)}
-                className={`p-3.5 rounded-xl border text-left transition-all flex items-center justify-between min-h-[52px] ${
+                className={`p-3.5 rounded-xl border text-left transition-all flex items-center justify-between min-h-[56px] ${
                   isSelected
-                    ? 'border-blue-600 bg-blue-50/80 shadow-xs ring-1 ring-blue-600'
+                    ? 'border-blue-600 bg-blue-50/80 shadow-xs ring-2 ring-blue-600'
                     : 'border-slate-200 bg-white hover:bg-slate-50'
                 }`}
               >
                 <div>
-                  <h3 className={`text-sm font-bold ${isSelected ? 'text-blue-900' : 'text-slate-800'}`}>
+                  <h3
+                    className={`text-sm font-bold leading-tight ${
+                      isSelected ? 'text-blue-950' : 'text-slate-900'
+                    }`}
+                  >
                     {zone.name}
                   </h3>
-                  <div className="flex items-center gap-2 mt-0.5 text-xs text-slate-500">
+                  <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 font-medium">
                     <span>📍 {zone.distance_km.toFixed(1)} km</span>
                     <span>•</span>
-                    <span>🌊 {zone.wave_risk === 'LOW' ? 'Calm' : 'Moderate'}</span>
+                    <span>
+                      🌊 {zone.wave_risk === 'LOW' ? t.conditions.calm : t.conditions.moderate}
+                    </span>
                   </div>
                 </div>
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center border shrink-0 ${
-                  isSelected ? 'border-blue-600 bg-blue-600 text-white' : 'border-slate-300'
-                }`}>
-                  {isSelected && <span className="text-xs">✓</span>}
+
+                <div
+                  className={`w-6 h-6 rounded-full flex items-center justify-center border-2 shrink-0 ${
+                    isSelected
+                      ? 'border-blue-600 bg-blue-600 text-white'
+                      : 'border-slate-300'
+                  }`}
+                >
+                  {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                 </div>
               </button>
             );
@@ -140,53 +205,78 @@ export const TripTab: React.FC<TripTabProps> = ({
         </div>
       </section>
 
-      {/* ── Step 2: Trip Summary & Calculation ── */}
+      {/* ── STEP 2: Voyage Safety & Conditions Check ── */}
       {activeZone && (
-        <section aria-label="Step 2 Voyage Summary" className="bg-white rounded-2xl border border-slate-200 p-4 space-y-4 shadow-xs">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-            {LABELS.step2[lang]}
-          </h2>
+        <section
+          aria-label="Step 2 Voyage Summary"
+          className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-4 shadow-2xs"
+        >
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              {t.trip.step2_title}
+            </h2>
+            <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full">
+              {activeZone.name}
+            </span>
+          </div>
 
+          {/* 4 Summary metric boxes */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center">
-              <span className="text-[11px] text-slate-400 font-medium block">{LABELS.distance[lang]}</span>
-              <strong className="text-slate-800 text-base font-bold">{activeZone.distance_km.toFixed(1)} km</strong>
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                {t.trip.distance}
+              </span>
+              <strong className="text-slate-900 text-base font-black">
+                {activeZone.distance_km.toFixed(1)} km
+              </strong>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center">
-              <span className="text-[11px] text-slate-400 font-medium block">{LABELS.est_time[lang]}</span>
-              <strong className="text-slate-800 text-base font-bold">~{estMins} min</strong>
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                {t.trip.est_transit}
+              </span>
+              <strong className="text-slate-900 text-base font-black">
+                ~{estMins} {t.trip.mins}
+              </strong>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center">
-              <span className="text-[11px] text-slate-400 font-medium block">{LABELS.sea[lang]}</span>
-              <strong className="text-slate-800 text-base font-bold">{weather.wave_height_m.toFixed(1)} m</strong>
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                {t.trip.sea_state}
+              </span>
+              <strong className="text-slate-900 text-base font-black">
+                {(weather.wave_height_m ?? 1.2).toFixed(1)} m
+              </strong>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-center">
-              <span className="text-[11px] text-slate-400 font-medium block">{LABELS.wind[lang]}</span>
-              <strong className="text-slate-800 text-base font-bold">{Math.round(weather.wind_speed_kmh)} km/h</strong>
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-center">
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                {t.trip.wind_speed}
+              </span>
+              <strong className="text-slate-900 text-base font-black">
+                {Math.round(weather.wind_speed_kmh ?? 20)} km/h
+              </strong>
             </div>
           </div>
 
-          {/* Action Button */}
+          {/* Calculate button */}
           <button
             type="button"
             onClick={handleExecutePlan}
             disabled={isCalculating}
-            className="w-full flex items-center justify-center gap-2 px-5 py-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-400 text-white rounded-2xl font-bold text-base shadow-sm transition-all min-h-[56px]"
+            className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:bg-blue-400 text-white rounded-2xl font-black text-sm sm:text-base shadow-xs transition-all min-h-[56px]"
           >
             <Compass className={`w-5 h-5 ${isCalculating ? 'animate-spin' : ''}`} />
-            <span>{isCalculating ? LABELS.calculating[lang] : LABELS.plan_btn[lang]}</span>
+            <span>{isCalculating ? t.trip.calculating : t.trip.calculate_btn}</span>
           </button>
         </section>
       )}
 
-      {/* ── Step 3: Route Options Result (Level 1: Simple comparison) ── */}
+      {/* ── STEP 3: Route Options Result (Safe Fairway vs Direct Hazardous) ── */}
       {routes.length > 0 && (
         <section aria-label="Step 3 Calculated Routes" className="space-y-3">
-          <h2 className="text-xs font-bold text-slate-500 uppercase tracking-wider px-1">
-            {LABELS.step3[lang]}
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 px-1">
+            {t.trip.step3_title}
           </h2>
 
           <div className="space-y-3">
@@ -195,47 +285,68 @@ export const TripTab: React.FC<TripTabProps> = ({
               return (
                 <div
                   key={rt.id}
-                  className={`p-4 rounded-2xl border transition-all ${
+                  className={`p-4 sm:p-5 rounded-2xl border-2 transition-all ${
                     isRecommended
-                      ? 'bg-emerald-50/70 border-emerald-300 shadow-xs'
-                      : 'bg-white border-slate-200'
+                      ? 'bg-emerald-50/80 border-emerald-500 shadow-2xs'
+                      : 'bg-amber-50/70 border-amber-400'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      {isRecommended ? (
-                        <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                      ) : (
-                        <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
-                      )}
+                  <div className="flex items-start justify-between gap-3 mb-2.5">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                          isRecommended
+                            ? 'bg-emerald-600 text-white'
+                            : 'bg-amber-500 text-white'
+                        }`}
+                      >
+                        {isRecommended ? (
+                          <CheckCircle2 className="w-5 h-5" />
+                        ) : (
+                          <AlertTriangle className="w-5 h-5" />
+                        )}
+                      </div>
                       <div>
-                        <h3 className={`text-base font-bold ${isRecommended ? 'text-emerald-950' : 'text-slate-800'}`}>
-                          {isRecommended ? LABELS.recommended[lang] : LABELS.alternative[lang]}
+                        <h3
+                          className={`text-base font-black leading-tight ${
+                            isRecommended ? 'text-emerald-950' : 'text-amber-950'
+                          }`}
+                        >
+                          {isRecommended
+                            ? t.trip.recommended_safe_fairway
+                            : t.trip.direct_hazardous_track}
                         </h3>
-                        <p className="text-xs text-slate-500">{rt.name}</p>
+                        <p className="text-xs text-slate-600 font-medium">{rt.name}</p>
                       </div>
                     </div>
 
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-bold ${
-                      isRecommended ? 'bg-emerald-200 text-emerald-900' : 'bg-amber-100 text-amber-900'
-                    }`}>
-                      {isRecommended ? 'SAFE PASSAGE' : 'HIGHER SWELL'}
+                    <span
+                      className={`text-xs px-2.5 py-1 rounded-full font-black tracking-wide ${
+                        isRecommended
+                          ? 'bg-emerald-200 text-emerald-900 border border-emerald-300'
+                          : 'bg-amber-200 text-amber-900 border border-amber-300'
+                      }`}
+                    >
+                      {isRecommended ? t.trip.safe_badge : t.trip.caution_badge}
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs font-semibold text-slate-700 my-2.5 py-1.5 border-y border-black/5">
+                  {/* Route metrics */}
+                  <div className="flex items-center gap-5 text-xs font-bold text-slate-800 my-3 py-2 border-y border-black/10">
                     <span>📏 {rt.distance_km.toFixed(1)} km</span>
                     <span>⏱ ~{rt.travel_time_mins} min</span>
                   </div>
 
-                  <p className="text-xs text-slate-600 leading-snug">
+                  {/* Avoidance rationale */}
+                  <p className="text-xs text-slate-700 leading-relaxed font-medium">
                     {rt.why_chosen_or_avoided}
                   </p>
 
-                  {rt.warnings.length > 0 && (
-                    <div className="mt-2 text-xs text-amber-800 bg-amber-100/70 p-2.5 rounded-xl border border-amber-200 flex items-start gap-1.5">
+                  {/* Warnings list */}
+                  {rt.warnings && rt.warnings.length > 0 && (
+                    <div className="mt-3 text-xs text-amber-950 bg-amber-100/90 p-3 rounded-xl border border-amber-300 flex items-start gap-2">
                       <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
-                      <span>{rt.warnings.join(' • ')}</span>
+                      <span className="font-semibold">{rt.warnings.join(' • ')}</span>
                     </div>
                   )}
                 </div>

@@ -10,7 +10,40 @@ import type { ChatResponse,
   DemoScenario
  } from '../types/marine';
 
-export const API_BASE = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.port === '5173' ? 'http://localhost:8000/api' : '/api');
+function resolveApiBase(): string {
+  const envUrl = (import.meta.env.VITE_API_URL || '').trim();
+  if (envUrl) {
+    const trimmed = envUrl.replace(/\/+$/, '');
+    return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+  }
+  if (typeof window !== 'undefined' && window.location.port === '5173') {
+    return 'http://localhost:8000/api';
+  }
+  return '/api';
+}
+
+export const API_BASE = resolveApiBase();
+
+export function getAuthToken(): string | null {
+  try {
+    const userStr = localStorage.getItem('marinemind_user');
+    if (userStr) {
+      const u = JSON.parse(userStr);
+      return u.token || localStorage.getItem('marinemind_token') || null;
+    }
+  } catch {}
+  return null;
+}
+
+function handleAuthStatus(res: Response) {
+  if (res.status === 401 && typeof window !== 'undefined') {
+    try {
+      localStorage.removeItem('marinemind_user');
+      localStorage.removeItem('marinemind_token');
+      window.dispatchEvent(new CustomEvent('marinemind:auth-expired'));
+    } catch {}
+  }
+}
 
 export async function sendChatQuery(
   query: string,
@@ -19,10 +52,16 @@ export async function sendChatQuery(
   language: string = 'en',
   demoScenarioId?: string
 ): Promise<ChatResponse> {
+  const token = getAuthToken();
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   try {
     const res = await fetch(`${API_BASE}/chat`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({
         query,
         conversation_id: conversationId,
@@ -31,6 +70,7 @@ export async function sendChatQuery(
         demo_scenario_id: demoScenarioId
       })
     });
+    handleAuthStatus(res);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch (err) {
@@ -42,6 +82,7 @@ export async function sendChatQuery(
 export async function fetchCurrentWeather(lat = 18.922, lon = 72.8347): Promise<WeatherData> {
   try {
     const res = await fetch(`${API_BASE}/weather/current?lat=${lat}&lon=${lon}`);
+    handleAuthStatus(res);
     if (!res.ok) throw new Error('API error');
     return await res.json();
   } catch {
@@ -59,8 +100,16 @@ export async function fetchCurrentWeather(lat = 18.922, lon = 72.8347): Promise<
       wave_period_s: 7.2,
       sea_state: 'Moderate',
       risk_level: 'Moderate',
-      forecast_summary: 'Moderate sea state. Safe nearshore operations; monitor afternoon swells.'
-    };
+      forecast_summary: 'Baseline estimate. Real-time telemetry currently unverified.',
+      provenance: {
+        source: 'Fallback Baseline (Offline)',
+        retrieved_at: new Date().toISOString(),
+        valid_at: new Date().toISOString(),
+        status: 'UNAVAILABLE',
+        freshness_minutes: 0,
+        note: 'Weather service temporarily unreachable'
+      }
+    } as any;
   }
 }
 

@@ -76,6 +76,15 @@ export function App() {
     } catch {}
   };
 
+  // Listen for session expiry from any API call across the application
+  useEffect(() => {
+    const onAuthExpired = () => {
+      handleLogout();
+    };
+    window.addEventListener('marinemind:auth-expired', onAuthExpired);
+    return () => window.removeEventListener('marinemind:auth-expired', onAuthExpired);
+  }, []);
+
   // ── Language ──────────────────────────────────────────────────────────────
   const [selectedLanguage, setSelectedLanguageState] = useState<string>(() => {
     try { return localStorage.getItem('marinemind_lang') || 'en'; } catch { return 'en'; }

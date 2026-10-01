@@ -1,0 +1,22 @@
+# Render Blueprint Specification for MarineMind AI
+# Documentation: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: marinemind-ai
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /api/health
+    envVars:
+      - key: JWT_SECRET
+        generateValue: true
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        value: sqlite:///./marinemind.db
+      - key: FRONTEND_URL
+        value: "" # Leave empty for same-origin single service deployment
+      - key: GEMINI_API_KEY
+        sync: false # Optional key entered in Render dashboard

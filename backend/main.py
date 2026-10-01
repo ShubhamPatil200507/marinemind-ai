@@ -37,14 +37,24 @@ if _has_limiter and limiter:
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# CORS — controlled by FRONTEND_URL env var (never wildcard + credentials)
-_FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
-_ALLOWED_ORIGINS = [o.strip() for o in _FRONTEND_URL.split(",") if o.strip()]
-# Always allow localhost for local dev
-if "http://localhost:5173" not in _ALLOWED_ORIGINS:
-    _ALLOWED_ORIGINS.append("http://localhost:5173")
-if "http://127.0.0.1:5173" not in _ALLOWED_ORIGINS:
-    _ALLOWED_ORIGINS.append("http://127.0.0.1:5173")
+# Environment configuration
+APP_ENV = os.environ.get("APP_ENV", os.environ.get("ENVIRONMENT", "development")).lower()
+_FRONTEND_URL = os.environ.get("FRONTEND_URL", "").strip()
+
+if APP_ENV == "production":
+    # Production CORS: Strictly enforce configured FRONTEND_URL. Do NOT allow localhost.
+    if _FRONTEND_URL:
+        _ALLOWED_ORIGINS = [o.strip() for o in _FRONTEND_URL.split(",") if o.strip()]
+    else:
+        # In single-origin deployments where FastAPI serves the built frontend SPA directly,
+        # same-origin requests do not require cross-origin allowance.
+        _ALLOWED_ORIGINS = []
+else:
+    # Development CORS: Allow configured origins + local dev servers
+    _ALLOWED_ORIGINS = [o.strip() for o in (_FRONTEND_URL or "http://localhost:5173").split(",") if o.strip()]
+    for local_origin in ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:8000"]:
+        if local_origin not in _ALLOWED_ORIGINS:
+            _ALLOWED_ORIGINS.append(local_origin)
 
 app.add_middleware(
     CORSMiddleware,
@@ -69,10 +79,11 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 @app.on_event("startup")
 async def startup_event():
     init_db()
-    logger.info("[MarineMind AI] Starting up...")
+    auth.seed_default_users()
+    logger.info(f"[MarineMind AI] Starting up in '{APP_ENV}' mode...")
     logger.info(f"[MarineMind AI] CORS allowed origins: {_ALLOWED_ORIGINS}")
     logger.info("[MarineMind AI] JWT authentication: enforced (no default fallback)")
-    logger.info("[MarineMind AI] Database: SQLite initialized")
+    logger.info("[MarineMind AI] Database: SQLite initialized and seeded idempotently")
     logger.info("[MarineMind AI] All systems ready.")
 
 # Register API Routers
@@ -152,4 +163,5 @@ async def serve_spa(full_path: str):
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
-    uvicorn.run("backend.main:app", host="0.0.0.0", port=port, reload=True)
+    host = os.getenv("HOST", "0.0.0.0")
+    uvicorn.run("backend.main:app", host=host, port=port, reload=(APP_ENV != "production"))

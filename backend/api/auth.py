@@ -205,11 +205,11 @@ def seed_default_users():
         db.commit()
     except Exception as e:
         db.rollback()
-        print(f"[Auth] Notice seeding default users: {e}")
+        logger.warning(f"[Auth] Notice seeding default users: {e}")
     finally:
         db.close()
 
-seed_default_users()
+# seed_default_users() is now invoked safely during startup_event() after init_db()
 
 @router.post("/login", response_model=UserProfile)
 async def login(request: Request, req: LoginRequest, db: Session = Depends(get_db)):

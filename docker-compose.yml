@@ -9,7 +9,7 @@ services:
     environment:
       - PORT=8000
       - DATABASE_URL=sqlite:///./marinemind.db
-      - JWT_SECRET=marinemind-ai-orca-secure-jwt-secret-key-2024
+      - JWT_SECRET=${JWT_SECRET}
       # Optional free Google Gemini key
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
     volumes:

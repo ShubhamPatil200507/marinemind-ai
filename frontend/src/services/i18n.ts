@@ -1612,3 +1612,6 @@ export function getTranslation(lang: string = 'en'): TranslationSchema {
   const code = (lang as LanguageCode) in TRANSLATIONS ? (lang as LanguageCode) : 'en';
   return TRANSLATIONS[code];
 }
+
+export * from './fishermanI18n';
+

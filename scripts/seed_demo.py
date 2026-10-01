@@ -52,7 +52,7 @@ def main():
                 "vessel_id": "IND-MH-01-MM-8492",
                 "phone": "9820145892",
                 "home_port": "Mumbai (Sassoon Docks)",
-                "password": "marinemind2024",
+                "password": "marinepassword",
                 "preferred_language": "en",
                 "user_type": "fisherman"
             },
@@ -62,7 +62,7 @@ def main():
                 "vessel_id": "IND-TN-04-MM-3105",
                 "phone": "9443210987",
                 "home_port": "Rameswaram Fishing Jetty",
-                "password": "marinemind2024",
+                "password": "marinepassword",
                 "preferred_language": "ta",
                 "user_type": "fisherman"
             },
@@ -72,7 +72,7 @@ def main():
                 "vessel_id": "IND-GJ-09-MM-5521",
                 "phone": "9712345678",
                 "home_port": "Veraval Fishing Harbour",
-                "password": "marinemind2024",
+                "password": "marinepassword",
                 "preferred_language": "hi",
                 "user_type": "fisherman"
             }
@@ -115,9 +115,9 @@ def main():
         db.commit()
         print("\n[Seed] ✅ Demo database seeded successfully.")
         print("[Seed] Demo login credentials:")
-        print("  Vessel ID: IND-MH-01-MM-8492  |  Password: marinemind2024")
-        print("  Vessel ID: IND-TN-04-MM-3105  |  Password: marinemind2024")
-        print("  Vessel ID: IND-GJ-09-MM-5521  |  Password: marinemind2024")
+        print("  Vessel ID: IND-MH-01-MM-8492  |  Password: marinepassword")
+        print("  Vessel ID: IND-TN-04-MM-3105  |  Password: marinepassword")
+        print("  Vessel ID: IND-GJ-09-MM-5521  |  Password: marinepassword")
         print("\n[IMPORTANT] These are DEMO credentials. Change passwords in production.")
 
     except Exception as e:
