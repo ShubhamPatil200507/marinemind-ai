@@ -2,9 +2,10 @@
 import os
 import uuid
 import hashlib
+import logging
 import datetime
 from typing import Optional, Dict, Any, Set
-from fastapi import APIRouter, HTTPException, Depends, status
+from fastapi import APIRouter, HTTPException, Depends, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -13,11 +14,35 @@ import jwt
 from backend.models.database import get_db, SessionLocal
 from backend.models.db_models import User
 
+try:
+    from slowapi import Limiter
+    from slowapi.util import get_remote_address
+    _limiter = Limiter(key_func=get_remote_address)
+    _has_limiter = True
+except ImportError:
+    _has_limiter = False
+
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
-JWT_SECRET = os.getenv("JWT_SECRET", "marinemind-ai-orca-secure-jwt-secret-key-2024")
+def _load_jwt_secret() -> str:
+    secret = os.environ.get("JWT_SECRET")
+    if not secret:
+        raise RuntimeError(
+            "[SECURITY] JWT_SECRET environment variable is not set. "
+            "Generate a secure secret (e.g. `python -c \"import secrets; print(secrets.token_hex(32))\"`)"
+            " and set it as JWT_SECRET before starting the server."
+        )
+    if len(secret) < 32:
+        raise RuntimeError(
+            "[SECURITY] JWT_SECRET is too short. Minimum 32 characters required for security."
+        )
+    return secret
+
+JWT_SECRET = _load_jwt_secret()
 JWT_ALGORITHM = "HS256"
-JWT_EXPIRY_DAYS = 7
+JWT_EXPIRY_HOURS = 24  # 24-hour access tokens (was 7 days)
 
 REVOKED_TOKENS: Set[str] = set()
 security = HTTPBearer(auto_error=False)
@@ -40,14 +65,14 @@ def verify_password(password: str, salt: str, expected_hash: str) -> bool:
     return calc_hash == expected_hash
 
 def create_access_token(user_id: str, vessel_id: Optional[str], role: str) -> str:
-    """Creates a cryptographically signed HMAC-SHA256 JWT token with 7-day expiration."""
+    """Creates a cryptographically signed HMAC-SHA256 JWT token with 24-hour expiration."""
     now = datetime.datetime.utcnow()
     payload = {
         "sub": user_id,
         "vessel_id": vessel_id,
         "role": role,
         "iat": now,
-        "exp": now + datetime.timedelta(days=JWT_EXPIRY_DAYS)
+        "exp": now + datetime.timedelta(hours=JWT_EXPIRY_HOURS)
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -59,7 +84,11 @@ def decode_access_token(token: str) -> Dict[str, Any]:
             detail="Session has been revoked. Please log in again."
         )
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(
+            token, JWT_SECRET,
+            algorithms=[JWT_ALGORITHM],
+            options={"require": ["sub", "exp", "iat"]}
+        )
         return payload
     except jwt.ExpiredSignatureError:
         raise HTTPException(
@@ -114,21 +143,21 @@ def get_optional_user(
     return None
 
 class LoginRequest(BaseModel):
-    identifier: str = Field(..., description="Vessel ID or Registered Mobile Number")
-    password: str = Field(..., min_length=4, description="Marine PIN or Password")
+    identifier: str = Field(..., min_length=3, max_length=100, description="Vessel ID or Registered Mobile Number")
+    password: str = Field(..., min_length=8, max_length=128, description="Marine PIN or Password")
 
 class RegisterRequest(BaseModel):
-    name: str = Field(..., min_length=2, description="Skipper / Vessel Owner Name")
-    vessel_id: str = Field(..., min_length=3, description="Vessel Registration Number")
-    phone: str = Field(..., min_length=10, description="Mobile Number")
-    home_port: str = Field(default="Mumbai (Sassoon Docks)", description="Base Fishing Harbor")
-    password: str = Field(..., min_length=4, description="Marine PIN or Password")
+    name: str = Field(..., min_length=2, max_length=100, description="Skipper / Vessel Owner Name")
+    vessel_id: str = Field(..., min_length=3, max_length=50, description="Vessel Registration Number")
+    phone: str = Field(..., min_length=10, max_length=15, description="Mobile Number")
+    home_port: str = Field(default="Mumbai (Sassoon Docks)", max_length=100, description="Base Fishing Harbor")
+    password: str = Field(..., min_length=8, max_length=128, description="Marine PIN or Password (min 8 characters)")
 
 class UpdateProfileRequest(BaseModel):
-    name: Optional[str] = None
-    phone: Optional[str] = None
-    home_port: Optional[str] = None
-    preferred_language: Optional[str] = None
+    name: Optional[str] = Field(None, max_length=100)
+    phone: Optional[str] = Field(None, max_length=15)
+    home_port: Optional[str] = Field(None, max_length=100)
+    preferred_language: Optional[str] = Field(None, max_length=10)
 
 class UserProfile(BaseModel):
     id: str
@@ -183,23 +212,23 @@ def seed_default_users():
 seed_default_users()
 
 @router.post("/login", response_model=UserProfile)
-async def login(req: LoginRequest, db: Session = Depends(get_db)):
+async def login(request: Request, req: LoginRequest, db: Session = Depends(get_db)):
     clean_id = req.identifier.strip()
     user = db.query(User).filter(
         (User.vessel_id.ilike(clean_id)) | (User.phone == clean_id)
     ).first()
 
+    # Generic message prevents user enumeration attacks
+    _auth_error = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Invalid credentials. Please check your Vessel ID/Mobile and password."
+    )
+
     if not user or not user.hashed_password or not user.salt:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid Vessel ID / Mobile Number or Password. Please verify your credentials."
-        )
+        raise _auth_error
 
     if not verify_password(req.password, user.salt, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid password. Please check your marine security PIN/password."
-        )
+        raise _auth_error
 
     token = create_access_token(user.id, user.vessel_id, user.user_type)
     return UserProfile(

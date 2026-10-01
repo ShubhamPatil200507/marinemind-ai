@@ -1,32 +1,74 @@
 # backend/main.py
 import os
+import logging
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
+from fastapi.exceptions import RequestValidationError
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from backend.models.database import init_db
 from backend.api import chat, marine, weather, pfz, routes, geofence, alerts, scenarios, auth, reports
 
+logging.basicConfig(
+    level=os.environ.get("LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+)
+logger = logging.getLogger(__name__)
+
+# Rate limiter — key by IP address
+limiter = Limiter(key_func=get_remote_address)
+
 app = FastAPI(
     title="MarineMind AI API",
-    description="Agentic AI Marine Intelligence Platform: Satellite Earth Observation, Multi-Agent Orchestration, and Explainable Navigation Decision Support.",
+    description="Agentic AI Marine Intelligence Platform: Multi-Agent Orchestration and Explainable Navigation Decision Support.",
     version="1.1.0"
 )
 
-# Enable CORS for frontend Vite development server & production builds
+# Attach rate limiter
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS — controlled by FRONTEND_URL env var (never wildcard + credentials)
+_FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
+_ALLOWED_ORIGINS = [o.strip() for o in _FRONTEND_URL.split(",") if o.strip()]
+# Always allow localhost for local dev
+if "http://localhost:5173" not in _ALLOWED_ORIGINS:
+    _ALLOWED_ORIGINS.append("http://localhost:5173")
+if "http://127.0.0.1:5173" not in _ALLOWED_ORIGINS:
+    _ALLOWED_ORIGINS.append("http://127.0.0.1:5173")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Return clean validation errors — never expose stack traces."""
+    return JSONResponse(
+        status_code=422,
+        content={
+            "error": "Validation failed",
+            "detail": exc.errors(),
+            "hint": "Check your request parameters and try again."
+        }
+    )
 
 @app.on_event("startup")
 async def startup_event():
     init_db()
-    print("[MarineMind AI] Multi-Agent Engine, SQLite DB, and JWT security initialized.")
+    logger.info("[MarineMind AI] Starting up...")
+    logger.info(f"[MarineMind AI] CORS allowed origins: {_ALLOWED_ORIGINS}")
+    logger.info("[MarineMind AI] JWT authentication: enforced (no default fallback)")
+    logger.info("[MarineMind AI] Database: SQLite initialized")
+    logger.info("[MarineMind AI] All systems ready.")
 
 # Register API Routers
 app.include_router(auth.router)
@@ -44,8 +86,16 @@ app.include_router(reports.router)
 async def health_check():
     return {
         "status": "healthy",
+        "version": "1.1.0",
         "database": "sqlite_connected",
         "ai_engine": "autonomous_hybrid",
+        "data_sources": {
+            "weather": "Open-Meteo (LIVE when available, UNAVAILABLE status if not)",
+            "chlorophyll": "MODELED — bio-optical SST proxy (not satellite)",
+            "pfz": "DEMO — algorithmic estimation (not live INCOIS)",
+            "cyclone": "UNKNOWN — no real-time cyclone API integrated",
+            "geofence": "STATIC seed data"
+        },
         "agents": [
             "orchestrator", "planner_agent", "language_agent",
             "weather_agent", "ocean_agent", "pfz_agent",
@@ -53,6 +103,7 @@ async def health_check():
             "explainability_agent"
         ]
     }
+
 
 # Mount and serve built frontend SPA across local, container, and Render environments
 def find_frontend_dist() -> str:

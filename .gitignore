@@ -1,4 +1,4 @@
-﻿# Python
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -14,9 +14,17 @@ venv/
 npm-debug.log*
 yarn-debug.log*
 
-# Environment and Secrets
+# Environment and Secrets — NEVER commit these
 .env
+.env.local
+.env.production
+.env.staging
 !.env.example
+
+# Databases — NEVER commit SQLite databases (may contain user data)
+*.db
+*.sqlite
+*.sqlite3
 
 # Editor & OS
 .vscode/
@@ -30,3 +38,7 @@ Thumbs.db
 
 # Cloudflare Tunnel
 cloudflared.exe
+
+# Logs
+*.log
+logs/

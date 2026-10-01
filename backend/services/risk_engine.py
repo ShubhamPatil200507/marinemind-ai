@@ -70,10 +70,26 @@ def calculate_marine_risk(
         lightning_label = "Low Lightning Probability"
 
     # 4. Cyclone Risk Component (0 - 100)
-    if weather.cyclone_alert:
+    # cyclone_status is an explicit enum — UNKNOWN means source unavailable
+    from backend.models.schemas import CycloneStatus
+    data_gaps = []
+    cyclone_status = getattr(weather, 'cyclone_status', None)
+    if cyclone_status == CycloneStatus.ACTIVE_CYCLONE:
         cyclone_component = 100.0
         cyclone_label = "ACTIVE CYCLONE WARNING"
+    elif cyclone_status == CycloneStatus.WARNING:
+        cyclone_component = 80.0
+        cyclone_label = "Cyclone Warning Issued"
+    elif cyclone_status == CycloneStatus.WATCH:
+        cyclone_component = 50.0
+        cyclone_label = "Cyclone Watch Active"
+    elif cyclone_status == CycloneStatus.UNKNOWN:
+        # Source unavailable — add conservative score + flag as gap
+        cyclone_component = 10.0
+        cyclone_label = "Cyclone Status: UNKNOWN (No live source — check IMD)"
+        data_gaps.append("Cyclone advisory source unavailable — verify at imd.gov.in")
     else:
+        # NO_ACTIVE_ALERT
         cyclone_component = 0.0
         cyclone_label = "No Active Cyclone Alert"
 
@@ -146,5 +162,6 @@ def calculate_marine_risk(
         visibility_risk=visibility_component,
         major_factors=major_factors,
         recommendation=recommendation,
-        safety_window="06:00 AM - 10:30 AM IST (Safe Window)" if final_score <= 50.0 else "Conditions Hazardous throughout day"
+        safety_window="06:00 AM - 10:30 AM IST (Safe Window)" if final_score <= 50.0 else "Conditions Hazardous throughout day",
+        data_gaps=data_gaps
     )

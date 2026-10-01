@@ -1,13 +1,16 @@
 # backend/agents/orchestrator.py
 import uuid
+import time
 import datetime
+import logging
 from typing import Dict, Any, List, Optional
 from sqlalchemy.orm import Session
 
 from backend.models.schemas import (
     UserQuery, ChatResponse, ExecutionPlan, ExecutionStep,
     EvidenceItem, ExplainableRecommendation, GeofenceCheckResult,
-    WeatherData, OceanData, PFZZone, RouteOption
+    WeatherData, OceanData, PFZZone, RouteOption,
+    AgentExecutionRecord, DataStatus, CycloneStatus, DataProvenance
 )
 from backend.models.database import SessionLocal
 from backend.models.db_models import Conversation, Message, RiskAssessmentLog
@@ -23,15 +26,49 @@ from backend.agents.explainability_agent import ExplainabilityAgent
 from backend.services.ai_service import marine_ai_service
 from backend.data.seed_data import DEFAULT_VESSEL_LOCATION, SEED_ADVISORIES
 
+logger = logging.getLogger(__name__)
+
+
+def _run_agent(name: str, fn, *args, **kwargs):
+    """
+    Isolated agent executor. Returns (result, record).
+    On failure: returns (None, AgentExecutionRecord with status='failed').
+    On success: returns (result, AgentExecutionRecord with status='completed').
+    """
+    start = time.monotonic()
+    try:
+        result = fn(*args, **kwargs)
+        duration = int((time.monotonic() - start) * 1000)
+        record = AgentExecutionRecord(
+            agent=name,
+            status="completed",
+            summary=result.get("summary", ""),
+            badge=result.get("badge", ""),
+            duration_ms=duration
+        )
+        return result, record
+    except Exception as exc:
+        duration = int((time.monotonic() - start) * 1000)
+        logger.error(f"[Orchestrator] Agent '{name}' failed: {exc}", exc_info=True)
+        record = AgentExecutionRecord(
+            agent=name,
+            status="failed",
+            summary=f"Agent failed: {type(exc).__name__}",
+            error=str(exc)[:200],
+            duration_ms=duration
+        )
+        return None, record
+
+
 class Orchestrator:
     """
     Central Controller for MarineMind AI (ORCA).
+
+    - Selectively executes ONLY the agents listed in plan.required_agents
+    - Isolates agent failures so partial results are returned instead of 500 errors
+    - Tracks execution trace (which agents ran, which were skipped, which failed)
     - Manages persistent conversation context in SQLite
-    - Invokes Language & Planner agents
-    - Executes specialized domain agents dynamically
-    - Fuses multi-source telemetry and calculates 6-factor risk
-    - Dynamically synthesizes explainable advice via MarineAIService
-    - Logs assessment records into SQLite database
+    - Logs assessment records for analytics
     """
     def __init__(self):
         self.language_agent = LanguageAgent()
@@ -50,7 +87,7 @@ class Orchestrator:
 
         try:
             conv_id = user_query.conversation_id or f"conv_{uuid.uuid4().hex[:12]}"
-            
+
             # Load or create conversation in SQLite
             db_conv = db.query(Conversation).filter(Conversation.id == conv_id).first()
             if not db_conv:
@@ -69,6 +106,10 @@ class Orchestrator:
             vessel_pos = user_query.vessel_location or session_context.get("last_vessel_location") or DEFAULT_VESSEL_LOCATION
             v_lat = float(vessel_pos.get("latitude", 18.9220))
             v_lon = float(vessel_pos.get("longitude", 72.8347))
+
+            # Validate coordinate ranges
+            v_lat = max(-90.0, min(90.0, v_lat))
+            v_lon = max(-180.0, min(180.0, v_lon))
 
             raw_query = user_query.query.strip()
 
@@ -92,88 +133,194 @@ class Orchestrator:
 
             # Update coordinates if planner extracted a specific port or coordinate
             if plan.location:
-                v_lat = float(plan.location.get("latitude", v_lat))
-                v_lon = float(plan.location.get("longitude", v_lon))
+                v_lat = max(-90.0, min(90.0, float(plan.location.get("latitude", v_lat))))
+                v_lon = max(-180.0, min(180.0, float(plan.location.get("longitude", v_lon))))
 
-            agent_statuses: List[Dict[str, Any]] = []
+            # =========================================================
+            # SELECTIVE AGENT EXECUTION
+            # Only agents listed in plan.required_agents are executed.
+            # Each agent runs in isolation — failure = partial result.
+            # =========================================================
+            required = set(plan.required_agents)
+            execution_trace: List[AgentExecutionRecord] = []
             evidence_list: List[EvidenceItem] = []
             active_layers: List[str] = ["vessel"]
+            data_warnings: List[str] = []
 
-            # Execute Weather Agent
-            weather_res = self.weather_agent.execute(v_lat, v_lon, plan.time_window)
-            evidence_list.extend(weather_res["evidence"])
-            w_data = weather_res["weather"]
-            agent_statuses.append({
-                "agent": "Weather Intelligence Agent",
-                "status": "completed",
-                "summary": weather_res["summary"],
-                "badge": f"{w_data.wind_speed_kmh} km/h | {w_data.wave_height_m}m waves"
-            })
-            active_layers.extend(["weather", "waves"])
+            # Default fallback data structures
+            w_data = WeatherData()
+            o_data = OceanData()
+            g_data = GeofenceCheckResult()
+            pfz_res_full: Dict[str, Any] = {"zones": [], "recommended_zone": None, "evidence": [], "summary": "PFZ agent not executed"}
+            routes_list: List[RouteOption] = []
+            r_data = None
 
-            # Execute Ocean Agent
-            ocean_res = self.ocean_agent.execute(v_lat, v_lon)
-            evidence_list.extend(ocean_res["evidence"])
-            o_data = ocean_res["ocean"]
-            agent_statuses.append({
-                "agent": "Ocean Analytics Agent",
-                "status": "completed",
-                "summary": ocean_res["summary"],
-                "badge": f"SST {o_data.sst_c}°C | Chl {o_data.chlorophyll_mg_m3} mg/m³"
-            })
-            active_layers.extend(["sst", "chlorophyll"])
+            # ── Weather Agent ─────────────────────────────────────────
+            if "weather_agent" in required or not required:
+                w_res, w_rec = _run_agent(
+                    "Weather Intelligence Agent",
+                    self.weather_agent.execute,
+                    v_lat, v_lon, plan.time_window
+                )
+                execution_trace.append(w_rec)
+                if w_res:
+                    evidence_list.extend(w_res.get("evidence", []))
+                    w_data = w_res["weather"]
+                    w_rec.badge = f"{w_data.wind_speed_kmh} km/h | {w_data.wave_height_m}m waves"
+                    active_layers.extend(["weather", "waves"])
+                    # Warn if data is not live
+                    if hasattr(w_data, 'provenance') and w_data.provenance.status != DataStatus.LIVE:
+                        data_warnings.append(
+                            f"Weather data status: {w_data.provenance.status.value} — {w_data.provenance.note or 'Not live'}"
+                        )
+                    # Warn about cyclone status
+                    if w_data.cyclone_status == CycloneStatus.UNKNOWN:
+                        data_warnings.append(
+                            "Cyclone status: UNKNOWN — No real-time cyclone monitoring source integrated. "
+                            "Check IMD (imd.gov.in) for official cyclone advisories."
+                        )
+                else:
+                    data_warnings.append("Weather agent failed — using default fallback values. Do NOT rely on these for navigation.")
+            else:
+                execution_trace.append(AgentExecutionRecord(
+                    agent="Weather Intelligence Agent", status="skipped",
+                    summary="Not required for this query type"
+                ))
 
-            # Execute Geospatial Agent
-            geo_res = self.geospatial_agent.execute(v_lat, v_lon)
-            evidence_list.extend(geo_res["evidence"])
-            g_data = geo_res["geofence_status"]
-            agent_statuses.append({
-                "agent": "Geospatial Reasoning Agent",
-                "status": "completed",
-                "summary": geo_res["summary"],
-                "badge": f"Boundary dist: {g_data.distance_to_boundary_km} km ({g_data.alert_level})"
-            })
-            active_layers.extend(["restricted", "geofences"])
+            # ── Ocean Agent ───────────────────────────────────────────
+            if "ocean_agent" in required or not required:
+                o_res, o_rec = _run_agent(
+                    "Ocean Analytics Agent",
+                    self.ocean_agent.execute,
+                    v_lat, v_lon
+                )
+                execution_trace.append(o_rec)
+                if o_res:
+                    evidence_list.extend(o_res.get("evidence", []))
+                    o_data = o_res["ocean"]
+                    o_rec.badge = f"SST {o_data.sst_c}°C | Chl {o_data.chlorophyll_mg_m3} mg/m³"
+                    active_layers.extend(["sst", "chlorophyll"])
+                    # Note chlorophyll is modeled, not satellite
+                    data_warnings.append(
+                        "Chlorophyll data: MODELED (bio-optical SST proxy) — not direct satellite-observed chlorophyll"
+                    )
+                else:
+                    data_warnings.append("Ocean agent failed — using default ocean values.")
+            else:
+                execution_trace.append(AgentExecutionRecord(
+                    agent="Ocean Analytics Agent", status="skipped",
+                    summary="Not required for this query type"
+                ))
 
-            # Execute PFZ Agent
-            pfz_res = self.pfz_agent.execute(v_lat, v_lon)
-            evidence_list.extend(pfz_res["evidence"])
-            target_pfz = pfz_res["recommended_zone"]
-            agent_statuses.append({
-                "agent": "PFZ Intelligence Agent",
-                "status": "completed",
-                "summary": pfz_res["summary"],
-                "badge": f"{len(pfz_res['zones'])} zones ranked | Top: {target_pfz.name if target_pfz else 'None'}"
-            })
-            active_layers.append("pfz")
+            # ── Geospatial Agent ──────────────────────────────────────
+            if "geospatial_agent" in required or not required:
+                g_res, g_rec = _run_agent(
+                    "Geospatial Reasoning Agent",
+                    self.geospatial_agent.execute,
+                    v_lat, v_lon
+                )
+                execution_trace.append(g_rec)
+                if g_res:
+                    evidence_list.extend(g_res.get("evidence", []))
+                    g_data = g_res["geofence_status"]
+                    g_rec.badge = f"Boundary dist: {g_data.distance_to_boundary_km} km ({g_data.alert_level})"
+                    active_layers.extend(["restricted", "geofences"])
+                else:
+                    data_warnings.append("Geospatial agent failed — geofence status unknown. Manually verify boundaries.")
+            else:
+                execution_trace.append(AgentExecutionRecord(
+                    agent="Geospatial Reasoning Agent", status="skipped",
+                    summary="Not required for this query type"
+                ))
 
-            # Execute Risk Assessment Agent
-            risk_res = self.risk_agent.execute(w_data, o_data, g_data)
-            evidence_list.extend(risk_res["evidence"])
-            r_data = risk_res["risk_assessment"]
-            agent_statuses.append({
-                "agent": "Risk Assessment Agent",
-                "status": "completed",
-                "summary": risk_res["summary"],
-                "badge": f"Risk: {r_data.risk_level} ({r_data.overall_score}/100)"
-            })
+            # ── PFZ Agent ─────────────────────────────────────────────
+            if "pfz_agent" in required or not required:
+                p_res, p_rec = _run_agent(
+                    "PFZ Intelligence Agent",
+                    self.pfz_agent.execute,
+                    v_lat, v_lon
+                )
+                execution_trace.append(p_rec)
+                if p_res:
+                    pfz_res_full = p_res
+                    evidence_list.extend(p_res.get("evidence", []))
+                    target_pfz = p_res.get("recommended_zone")
+                    p_rec.badge = f"{len(p_res['zones'])} zones | Top: {target_pfz.name if target_pfz else 'None'}"
+                    active_layers.append("pfz")
+                    # Note PFZ is demo data
+                    data_warnings.append(
+                        "PFZ zones: DEMO data — algorithmic estimation only. Not live INCOIS satellite PFZ advisory."
+                    )
+                else:
+                    target_pfz = None
+                    data_warnings.append("PFZ agent failed — fishing zone recommendations unavailable.")
+            else:
+                target_pfz = None
+                execution_trace.append(AgentExecutionRecord(
+                    agent="PFZ Intelligence Agent", status="skipped",
+                    summary="Not required for this query type"
+                ))
 
-            # Execute Route Agent
-            dest_lat = target_pfz.latitude if target_pfz else (v_lat + 0.08)
-            dest_lon = target_pfz.longitude if target_pfz else (v_lon - 0.08)
-            dest_name = target_pfz.name if target_pfz else "PFZ Alpha"
-            route_res = self.route_agent.execute(v_lat, v_lon, dest_lat, dest_lon, dest_name)
-            evidence_list.extend(route_res["evidence"])
-            routes_list = route_res["route_recommendation"].routes
-            agent_statuses.append({
-                "agent": "Safe Route Planning Agent",
-                "status": "completed",
-                "summary": route_res["summary"],
-                "badge": f"Safe passage analyzed ({len(routes_list)} options)"
-            })
-            active_layers.append("routes")
+            # ── Risk Agent ────────────────────────────────────────────
+            if "risk_agent" in required or not required:
+                r_res, r_rec = _run_agent(
+                    "Risk Assessment Agent",
+                    self.risk_agent.execute,
+                    w_data, o_data, g_data
+                )
+                execution_trace.append(r_rec)
+                if r_res:
+                    evidence_list.extend(r_res.get("evidence", []))
+                    r_data = r_res["risk_assessment"]
+                    r_rec.badge = f"Risk: {r_data.risk_level} ({r_data.overall_score}/100)"
+                else:
+                    data_warnings.append("Risk assessment failed — overall risk score unavailable.")
+            else:
+                execution_trace.append(AgentExecutionRecord(
+                    agent="Risk Assessment Agent", status="skipped",
+                    summary="Not required for this query type"
+                ))
+
+            # ── Route Agent ───────────────────────────────────────────
+            if "route_agent" in required or not required:
+                dest_lat = target_pfz.latitude if target_pfz else (v_lat + 0.08)
+                dest_lon = target_pfz.longitude if target_pfz else (v_lon - 0.08)
+                dest_name = target_pfz.name if target_pfz else "PFZ Alpha"
+                rt_res, rt_rec = _run_agent(
+                    "Safe Route Planning Agent",
+                    self.route_agent.execute,
+                    v_lat, v_lon, dest_lat, dest_lon, dest_name
+                )
+                execution_trace.append(rt_rec)
+                if rt_res:
+                    evidence_list.extend(rt_res.get("evidence", []))
+                    routes_list = rt_res["route_recommendation"].routes
+                    rt_rec.badge = f"Safe passage analyzed ({len(routes_list)} options)"
+                    active_layers.append("routes")
+            else:
+                execution_trace.append(AgentExecutionRecord(
+                    agent="Safe Route Planning Agent", status="skipped",
+                    summary="Not required for this query type"
+                ))
 
             # Step 4: Dynamic AI Synthesis via MarineAIService
+            # Provide safe fallbacks if risk_agent didn't run
+            if r_data is None:
+                from backend.models.schemas import MarineRiskAssessment
+                r_data = MarineRiskAssessment(
+                    overall_score=0.0,
+                    risk_level="UNKNOWN",
+                    confidence=0.0,
+                    wave_risk=0.0,
+                    wind_risk=0.0,
+                    lightning_risk=0.0,
+                    cyclone_risk=0.0,
+                    geofence_risk=0.0,
+                    visibility_risk=0.0,
+                    recommendation="Risk assessment unavailable — consult Coast Guard before departure.",
+                    data_gaps=["Risk agent did not execute"]
+                )
+
             ai_output = marine_ai_service.generate_marine_advice(
                 query=raw_query,
                 plan=plan,
@@ -190,6 +337,12 @@ class Orchestrator:
             action_rec = ai_output["action"]
             why_bullets = ai_output["why_bullets"]
 
+            # Append data warnings to answer if critical
+            if data_warnings:
+                critical_warnings = [w for w in data_warnings if "NOT" in w or "UNAVAILABLE" in w or "DEMO" in w]
+                if critical_warnings:
+                    answer += "\n\n⚠️ **Data Quality Notes:**\n" + "\n".join(f"• {w}" for w in critical_warnings[:3])
+
             explainable_rec = self.explainability_agent.synthesize(
                 plan=plan,
                 evidence_list=evidence_list,
@@ -200,50 +353,67 @@ class Orchestrator:
             )
 
             # Step 5: Save Messages & Context to SQLite database
-            user_msg = Message(
-                conversation_id=conv_id,
-                role="user",
-                content=raw_query,
-                timestamp=datetime.datetime.utcnow()
-            )
-            bot_msg = Message(
-                conversation_id=conv_id,
-                role="assistant",
-                content=answer,
-                structured_data={
-                    "risk_score": r_data.overall_score,
-                    "risk_level": r_data.risk_level,
-                    "action": action_rec
-                },
-                timestamp=datetime.datetime.utcnow()
-            )
-            db.add(user_msg)
-            db.add(bot_msg)
+            try:
+                user_msg = Message(
+                    conversation_id=conv_id,
+                    role="user",
+                    content=raw_query,
+                    timestamp=datetime.datetime.utcnow()
+                )
+                bot_msg = Message(
+                    conversation_id=conv_id,
+                    role="assistant",
+                    content=answer,
+                    structured_data={
+                        "risk_score": r_data.overall_score,
+                        "risk_level": r_data.risk_level,
+                        "action": action_rec
+                    },
+                    timestamp=datetime.datetime.utcnow()
+                )
+                db.add(user_msg)
+                db.add(bot_msg)
 
-            # Log risk assessment
-            risk_log = RiskAssessmentLog(
-                conversation_id=conv_id,
-                latitude=v_lat,
-                longitude=v_lon,
-                weather_risk=r_data.wind_risk,
-                wave_risk=r_data.wave_risk,
-                lightning_risk=r_data.lightning_risk,
-                cyclone_risk=r_data.cyclone_risk,
-                geofence_risk=r_data.geofence_risk,
-                final_score=r_data.overall_score,
-                recommendation=r_data.recommendation
-            )
-            db.add(risk_log)
+                risk_log = RiskAssessmentLog(
+                    conversation_id=conv_id,
+                    latitude=v_lat,
+                    longitude=v_lon,
+                    weather_risk=r_data.wind_risk,
+                    wave_risk=r_data.wave_risk,
+                    lightning_risk=r_data.lightning_risk,
+                    cyclone_risk=r_data.cyclone_risk,
+                    geofence_risk=r_data.geofence_risk,
+                    final_score=r_data.overall_score,
+                    recommendation=r_data.recommendation
+                )
+                db.add(risk_log)
 
-            # Update conversation context
-            db_conv.last_context = {
-                "last_pfz_discussed": target_pfz.dict() if target_pfz else None,
-                "last_vessel_location": {"latitude": v_lat, "longitude": v_lon},
-                "last_risk_score": r_data.overall_score
-            }
-            db.commit()
+                # Update conversation context
+                db_conv.last_context = {
+                    "last_pfz_discussed": target_pfz.dict() if target_pfz else None,
+                    "last_vessel_location": {"latitude": v_lat, "longitude": v_lon},
+                    "last_risk_score": r_data.overall_score
+                }
+                db.commit()
+            except Exception as db_exc:
+                logger.error(f"[Orchestrator] DB persistence failed: {db_exc}", exc_info=True)
+                # Do not let DB errors block the response
+                try:
+                    db.rollback()
+                except Exception:
+                    pass
 
-            # Centering & Map Response
+            # Build agent_statuses for backward compat (from execution_trace)
+            agent_statuses = [
+                {
+                    "agent": rec.agent,
+                    "status": rec.status,
+                    "summary": rec.summary,
+                    "badge": rec.badge
+                }
+                for rec in execution_trace
+            ]
+
             map_focus = {
                 "latitude": v_lat,
                 "longitude": v_lon,
@@ -265,10 +435,12 @@ class Orchestrator:
                 explainability=explainable_rec,
                 map_focus=map_focus,
                 active_layers=list(set(active_layers)),
-                pfz_zones=pfz_res["zones"],
+                pfz_zones=pfz_res_full.get("zones", []),
                 routes=routes_list,
                 geofence_status=g_data,
-                alerts=SEED_ADVISORIES
+                alerts=SEED_ADVISORIES,
+                execution_trace=execution_trace,
+                data_warnings=data_warnings
             )
         finally:
             if close_db_on_exit:

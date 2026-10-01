@@ -2,40 +2,17 @@
 import os
 import httpx
 import datetime
+import logging
 from typing import Dict, Any, Optional, List
-from backend.models.schemas import WeatherData
+from backend.models.schemas import WeatherData, DataProvenance, DataStatus, CycloneStatus
+
+logger = logging.getLogger(__name__)
+
+_OPEN_METEO_TIMEOUT = float(os.environ.get("OPEN_METEO_TIMEOUT", "5.0"))
 
 def get_compass_direction(deg: float) -> str:
     compass_pts = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
     return compass_pts[int((deg + 11.25) / 22.5) % 16]
-
-async def fetch_live_weather(lat: float, lon: float) -> Optional[Dict[str, Any]]:
-    """Attempts to fetch real-time marine weather from Open-Meteo."""
-    try:
-        url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=wave_height&timezone=auto"
-        async with httpx.AsyncClient(timeout=3.0) as client:
-            resp = await client.get(url)
-            if resp.status_code == 200:
-                data = resp.json()
-                current = data.get("current", {})
-                wind_kmh = current.get("wind_speed_10m", 20.0)
-                temp = current.get("temperature_2m", 28.0)
-                gusts = current.get("wind_gusts_10m", wind_kmh * 1.3)
-                precip = current.get("precipitation", 0.0)
-                wind_deg = current.get("wind_direction_10m", 315)
-                return {
-                    "temperature_c": temp,
-                    "wind_speed_kmh": round(wind_kmh, 1),
-                    "wind_speed_knots": round(wind_kmh * 0.539957, 1),
-                    "wind_direction": get_compass_direction(wind_deg),
-                    "wind_gust_kmh": round(gusts, 1),
-                    "rain_probability": int(min(precip * 20, 95)),
-                    "wave_height_m": 1.4,
-                    "is_live": True
-                }
-    except Exception:
-        pass
-    return None
 
 def parse_hourly_temporal_forecast(
     weather_json: Dict[str, Any],
@@ -103,14 +80,19 @@ def parse_hourly_temporal_forecast(
 def get_weather_forecast(lat: float, lon: float, time_window: str = "now") -> WeatherData:
     """
     Returns verified marine weather intelligence utilizing real-time API queries.
-    Parses hourly telemetry when morning, afternoon, or tomorrow forecasts are requested.
+    - Sets DataProvenance.status = LIVE when data is fresh from Open-Meteo
+    - Sets DataProvenance.status = UNAVAILABLE and uses fallback baseline on failure
+    - NEVER silently presents stale/fallback data as live information
+    - Cyclone status is always UNKNOWN (no real-time cyclone API integrated)
     """
-    # 1. Fetch live and hourly telemetry from Open-Meteo Weather + Marine APIs
     weather_data = None
     marine_data = None
+    data_is_live = False
+    retrieved_at = datetime.datetime.utcnow().isoformat() + "Z"
+    api_error: Optional[str] = None
 
     try:
-        with httpx.Client(timeout=3.5) as client:
+        with httpx.Client(timeout=_OPEN_METEO_TIMEOUT) as client:
             w_url = (
                 f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
                 f"&current=temperature_2m,relative_humidity_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,precipitation"
@@ -128,10 +110,20 @@ def get_weather_forecast(lat: float, lon: float, time_window: str = "now") -> We
 
             if w_resp.status_code == 200:
                 weather_data = w_resp.json()
+            else:
+                logger.warning(f"[WeatherTools] Open-Meteo weather API returned {w_resp.status_code}")
             if m_resp.status_code == 200:
                 marine_data = m_resp.json()
-    except Exception:
-        pass
+                data_is_live = (weather_data is not None)
+            else:
+                logger.warning(f"[WeatherTools] Open-Meteo marine API returned {m_resp.status_code}")
+
+    except httpx.TimeoutException:
+        api_error = "Open-Meteo request timed out"
+        logger.warning(f"[WeatherTools] Timeout fetching weather for ({lat},{lon})")
+    except Exception as exc:
+        api_error = str(exc)
+        logger.warning(f"[WeatherTools] Failed to fetch weather: {exc}")
 
     # 2. Extract parameters depending on time window
     tw_lower = time_window.lower()
@@ -166,6 +158,7 @@ def get_weather_forecast(lat: float, lon: float, time_window: str = "now") -> We
                 wave_period = float(m_curr.get("wave_period"))
     else:
         # Fallback baseline when network unavailable
+        # IMPORTANT: provenance status will be UNAVAILABLE — clearly marked for UI
         temp_c = 28.4
         wind_kmh = 21.0
         wind_dir = "NW"
@@ -173,6 +166,7 @@ def get_weather_forecast(lat: float, lon: float, time_window: str = "now") -> We
         rain_prob = 20
         wave_h = 1.4
         wave_period = 7.2
+        data_is_live = False
 
     wind_knots = round(wind_kmh * 0.539957, 1)
 
@@ -190,8 +184,30 @@ def get_weather_forecast(lat: float, lon: float, time_window: str = "now") -> We
     lightning_risk = "High" if rain_prob > 60 else ("Moderate" if rain_prob > 35 else "Low")
     vis = "Moderate (5-8 km)" if rain_prob > 50 else "Excellent (10+ km)"
 
+    # 4. Build data provenance
+    if data_is_live:
+        provenance = DataProvenance(
+            source="Open-Meteo Weather & Marine API",
+            retrieved_at=retrieved_at,
+            valid_at=retrieved_at,
+            status=DataStatus.LIVE,
+            freshness_minutes=0,
+            source_url="https://open-meteo.com/",
+            note="Live atmospheric and marine forecast from Open-Meteo"
+        )
+    else:
+        provenance = DataProvenance(
+            source="Open-Meteo (Unavailable) — Fallback Baseline",
+            retrieved_at=retrieved_at,
+            status=DataStatus.UNAVAILABLE,
+            note=f"Live API unavailable{f': {api_error}' if api_error else ''}. Values are fallback estimates — NOT current conditions."
+        )
+
+    # 5. Build summary
+    source_label = "[LIVE]" if data_is_live else "[UNAVAILABLE — FALLBACK ESTIMATE]"
     summary = (
-        f"{time_window.replace('_', ' ').capitalize()} forecast: Winds {wind_kmh} km/h {wind_dir} with gusts to {gust_kmh} km/h. "
+        f"{source_label} {time_window.replace('_', ' ').capitalize()} forecast: "
+        f"Winds {wind_kmh} km/h {wind_dir} with gusts to {gust_kmh} km/h. "
         f"Significant wave height {wave_h}m ({wave_period}s period). Sea state: {sea_state}."
     )
 
@@ -204,10 +220,13 @@ def get_weather_forecast(lat: float, lon: float, time_window: str = "now") -> We
         rain_probability=rain_prob,
         visibility=vis,
         lightning_risk=lightning_risk,
-        cyclone_alert=False,
+        # Cyclone status: UNKNOWN — no real-time cyclone API integrated
+        # NEVER default to NO_ACTIVE_ALERT without a real data source
+        cyclone_status=CycloneStatus.UNKNOWN,
         wave_height_m=wave_h,
         wave_period_s=wave_period,
         sea_state=sea_state,
         risk_level=risk_lvl,
-        forecast_summary=summary
+        forecast_summary=summary,
+        provenance=provenance
     )

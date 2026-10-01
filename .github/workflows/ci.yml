@@ -1,0 +1,107 @@
+name: MarineMind AI — CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-lint-test:
+    name: Backend — Lint & Tests
+    runs-on: ubuntu-latest
+    
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-test-secret-minimum-32-characters-long' }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
+      FRONTEND_URL: http://localhost:5173
+      DATABASE_URL: sqlite:///./test_marinemind.db
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Lint with ruff
+        run: |
+          pip install ruff
+          ruff check backend/ --select=E,F,W --ignore=E501,W291,W293 || true
+
+      - name: Type check with mypy (non-blocking)
+        run: |
+          pip install mypy
+          mypy backend/ --ignore-missing-imports --no-error-summary || true
+
+      - name: Run tests
+        run: |
+          pip install pytest pytest-asyncio httpx
+          python -m pytest tests/ -v --tb=short 2>&1
+
+      - name: Security scan — check for hardcoded secrets
+        run: |
+          echo "Scanning for hardcoded secrets..."
+          if grep -rn "marinemind-ai-orca-secure-jwt-secret" backend/ --include="*.py"; then
+            echo "❌ FAIL: Hardcoded JWT secret found in source!"
+            exit 1
+          fi
+          if grep -rn "os.getenv(\"JWT_SECRET\".*default" backend/ --include="*.py"; then
+            echo "❌ FAIL: JWT_SECRET has insecure default fallback!"
+            exit 1
+          fi
+          echo "✅ No hardcoded JWT secrets found"
+
+      - name: Check .gitignore contains database entries
+        run: |
+          if ! grep -q "*.db" .gitignore; then
+            echo "❌ FAIL: .gitignore does not exclude *.db files!"
+            exit 1
+          fi
+          echo "✅ .gitignore correctly excludes database files"
+
+      - name: Verify no .db files tracked in git
+        run: |
+          DB_FILES=$(git ls-files "*.db" "*.sqlite" "*.sqlite3" 2>/dev/null)
+          if [ -n "$DB_FILES" ]; then
+            echo "❌ FAIL: Database files tracked in git: $DB_FILES"
+            exit 1
+          fi
+          echo "✅ No database files tracked in git"
+
+  frontend-build:
+    name: Frontend — Build Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+        env:
+          VITE_API_BASE: ''
+
+      - name: Verify build output exists
+        run: |
+          if [ ! -f "frontend/dist/index.html" ]; then
+            echo "❌ FAIL: Frontend build did not produce index.html"
+            exit 1
+          fi
+          echo "✅ Frontend build successful"
