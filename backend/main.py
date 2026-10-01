@@ -7,9 +7,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.exceptions import RequestValidationError
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from slowapi.errors import RateLimitExceeded
+try:
+    from slowapi import Limiter, _rate_limit_exceeded_handler
+    from slowapi.util import get_remote_address
+    from slowapi.errors import RateLimitExceeded
+    limiter = Limiter(key_func=get_remote_address)
+    _has_limiter = True
+except ImportError:
+    limiter = None
+    _has_limiter = False
+
 from backend.models.database import init_db
 from backend.api import chat, marine, weather, pfz, routes, geofence, alerts, scenarios, auth, reports
 
@@ -19,18 +26,16 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Rate limiter — key by IP address
-limiter = Limiter(key_func=get_remote_address)
-
 app = FastAPI(
     title="MarineMind AI API",
     description="Agentic AI Marine Intelligence Platform: Multi-Agent Orchestration and Explainable Navigation Decision Support.",
     version="1.1.0"
 )
 
-# Attach rate limiter
-app.state.limiter = limiter
-app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+# Attach rate limiter if available
+if _has_limiter and limiter:
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 # CORS — controlled by FRONTEND_URL env var (never wildcard + credentials)
 _FRONTEND_URL = os.environ.get("FRONTEND_URL", "http://localhost:5173")
