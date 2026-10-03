@@ -460,7 +460,7 @@ export function App() {
   return (
     <div className="flex flex-col h-[100dvh] min-h-[100dvh] bg-slate-50 overflow-hidden">
       {/* ── Offline-first maritime banner for deep-sea fishing ─────────── */}
-      <OfflineBanner isOffline={!isOnline} isCachedData={dataStatus === 'CACHED'} />
+      <OfflineBanner isOffline={!isOnline} isCachedData={dataStatus === 'CACHED'} language={selectedLanguage} />
 
       {/* ── Main content area (scrollable) ─────────────────────────────── */}
       <main className={`flex-1 overflow-y-auto ${activeTab === 'ask' ? 'pb-16 flex flex-col min-h-0' : 'pb-24 sm:pb-20'}`}>

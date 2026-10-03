@@ -70,7 +70,7 @@ export const SpotsTab: React.FC<SpotsTabProps> = ({
                 }`}
               >
                 <List className="w-3.5 h-3.5" />
-                <span>List</span>
+                <span>{t.spots.view_list}</span>
               </button>
               <button
                 type="button"
@@ -82,7 +82,7 @@ export const SpotsTab: React.FC<SpotsTabProps> = ({
                 }`}
               >
                 <MapIcon className="w-3.5 h-3.5" />
-                <span>Chart</span>
+                <span>{t.spots.view_chart}</span>
               </button>
             </div>
           )}

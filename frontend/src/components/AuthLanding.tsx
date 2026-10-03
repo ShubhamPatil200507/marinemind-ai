@@ -6,8 +6,7 @@ import {
   ArrowRight, KeyRound, User, Phone, MapPin, AlertCircle, ChevronDown,
   Eye, EyeOff, Sparkles, Ship
 } from 'lucide-react';
-import { getTranslation } from '../services/i18n';
-import { SUPPORTED_LANGUAGES, type FishermanLang } from '../services/fishermanI18n';
+import { getFishermanTranslation, SUPPORTED_LANGUAGES, localizeHarborName } from '../services/fishermanI18n';
 import { API_BASE } from '../services/api';
 
 export interface UserProfile {
@@ -31,7 +30,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
   selectedLanguage,
   setSelectedLanguage
 }) => {
-  const t = getTranslation(selectedLanguage);
+  const t = getFishermanTranslation(selectedLanguage);
   const [activeTab, setActiveTab] = useState<'signin' | 'register'>('signin');
   const [loading, setLoading] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -88,11 +87,11 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regName.trim() || !regVesselId.trim() || !regPhone.trim() || !regPassword.trim()) {
-      setErrorMsg('Please complete all required fields.');
+      setErrorMsg(t.auth.err_required);
       return;
     }
     if (regPassword.length < 8) {
-      setErrorMsg('Marine PIN / Password must be at least 8 characters long.');
+      setErrorMsg(t.auth.err_password_len);
       return;
     }
     setErrorMsg(null);
@@ -208,16 +207,16 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                   </div>
                   <div>
                     <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
-                      Vessel Skipper Portal
+                      {t.auth.portal_title}
                     </h2>
                     <span className="text-[11px] text-slate-500 font-medium block">
-                      Indian Coastal Marine Safety Network
+                      {t.auth.network_sub}
                     </span>
                   </div>
                 </div>
 
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
-                  Secure Access
+                  {t.auth.secure_badge}
                 </span>
               </div>
 
@@ -294,7 +293,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                   {/* Quick Skipper Fill Options */}
                   <div className="space-y-1.5">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                      Quick Skipper Login (1-Tap Select)
+                      {t.auth.quick_skipper_title}
                     </span>
                     <div className="grid grid-cols-2 gap-2">
                       <button
@@ -310,7 +309,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                           <span className="text-xs">⛵</span>
                           <span className="text-xs font-bold text-slate-900 truncate">Capt. Ramesh</span>
                         </div>
-                        <span className="text-[10px] text-slate-500 block truncate">Mumbai Sassoon Docks</span>
+                        <span className="text-[10px] text-slate-500 block truncate">{localizeHarborName('Mumbai (Sassoon Docks)', selectedLanguage)}</span>
                         <span className="text-[9px] font-mono text-blue-700 font-semibold block truncate">MH-01-MM-8492</span>
                       </button>
 
@@ -327,7 +326,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                           <span className="text-xs">⚓</span>
                           <span className="text-xs font-bold text-slate-900 truncate">Capt. Selvam</span>
                         </div>
-                        <span className="text-[10px] text-slate-500 block truncate">Rameswaram Jetty</span>
+                        <span className="text-[10px] text-slate-500 block truncate">{localizeHarborName('Rameswaram Fishing Jetty', selectedLanguage)}</span>
                         <span className="text-[9px] font-mono text-blue-700 font-semibold block truncate">TN-04-MM-3105</span>
                       </button>
                     </div>
@@ -376,7 +375,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                   </div>
 
                   <div className="text-[11px] text-slate-500 font-mono bg-slate-50 p-2 rounded-lg border border-slate-200">
-                    {t.auth.demo_credentials_hint}
+                    {t.auth.demo_hint}
                   </div>
 
                   <button
@@ -457,16 +456,16 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                         onChange={(e) => setRegHarbor(e.target.value)}
                         className="w-full h-9 pl-9 pr-3 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
                       >
-                        <option value="Mumbai (Sassoon Docks)">Mumbai (Sassoon Docks), Maharashtra</option>
-                        <option value="Mirkarwada Harbor, Ratnagiri">Mirkarwada Harbor, Ratnagiri, Maharashtra</option>
-                        <option value="Veraval Fishing Harbor">Veraval Fishing Harbor, Gujarat</option>
-                        <option value="Porbandar Fishing Harbor">Porbandar Fishing Harbor, Gujarat</option>
-                        <option value="Rameswaram Fishing Jetty">Rameswaram Fishing Jetty, Tamil Nadu</option>
-                        <option value="Kasimedu Fishing Harbor, Chennai">Kasimedu Fishing Harbor, Chennai, Tamil Nadu</option>
-                        <option value="Kochi Thoppumpady Harbor">Kochi Thoppumpady Harbor, Kerala</option>
-                        <option value="Mangalore Old Port">Mangalore Old Port, Karnataka</option>
-                        <option value="Visakhapatnam Harbor">Visakhapatnam Harbor, Andhra Pradesh</option>
-                        <option value="Paradip Fishing Harbor">Paradip Fishing Harbor, Odisha</option>
+                        <option value="Mumbai (Sassoon Docks)">{localizeHarborName('Mumbai (Sassoon Docks)', selectedLanguage)}, Maharashtra</option>
+                        <option value="Mirkarwada Harbor, Ratnagiri">{localizeHarborName('Mirkarwada Harbor, Ratnagiri', selectedLanguage)}, Maharashtra</option>
+                        <option value="Veraval Fishing Harbor">{localizeHarborName('Veraval Fishing Harbor', selectedLanguage)}, Gujarat</option>
+                        <option value="Porbandar Fishing Harbor">{localizeHarborName('Porbandar Fishing Harbor', selectedLanguage)}, Gujarat</option>
+                        <option value="Rameswaram Fishing Jetty">{localizeHarborName('Rameswaram Fishing Jetty', selectedLanguage)}, Tamil Nadu</option>
+                        <option value="Kasimedu Fishing Harbor, Chennai">{localizeHarborName('Kasimedu Fishing Harbor, Chennai', selectedLanguage)}, Tamil Nadu</option>
+                        <option value="Kochi Thoppumpady Harbor">{localizeHarborName('Kochi Thoppumpady Harbor', selectedLanguage)}, Kerala</option>
+                        <option value="Mangalore Old Port">{localizeHarborName('Mangalore Old Port', selectedLanguage)}, Karnataka</option>
+                        <option value="Visakhapatnam Harbor">{localizeHarborName('Visakhapatnam Harbor', selectedLanguage)}, Andhra Pradesh</option>
+                        <option value="Paradip Fishing Harbor">{localizeHarborName('Paradip Fishing Harbor', selectedLanguage)}, Odisha</option>
                       </select>
                     </div>
                   </div>
@@ -482,7 +481,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                         required
                         value={regPassword}
                         onChange={(e) => setRegPassword(e.target.value)}
-                        placeholder="Minimum 8 characters password"
+                        placeholder={t.auth.password_placeholder}
                         className="w-full h-9 pl-9 pr-10 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
                       />
                       <button

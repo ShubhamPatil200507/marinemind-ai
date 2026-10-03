@@ -3,12 +3,28 @@
 import React from 'react';
 import { AlertTriangle, Info, XCircle, X } from 'lucide-react';
 
+import type { FishermanLang } from '../services/fishermanI18n';
+
 interface WarningBannerProps {
   severity: 'INFO' | 'WARNING' | 'CRITICAL';
   title: string;
   message: string;
+  badgeText?: string;
+  language?: string;
   onDismiss?: () => void;
 }
+
+const BADGE_MAP: Record<FishermanLang, Record<'INFO' | 'WARNING' | 'CRITICAL', string>> = {
+  en: { INFO: 'NOTICE', WARNING: 'ADVISORY', CRITICAL: 'STORM WARNING' },
+  hi: { INFO: 'सूचना', WARNING: 'तटीय चेतावनी', CRITICAL: 'तूफान चेतावनी' },
+  mr: { INFO: 'सूचना', WARNING: 'सागरी इशारा', CRITICAL: 'वादळ इशारा' },
+  gu: { INFO: 'સૂચના', WARNING: 'દરિયાઈ ચેતવણી', CRITICAL: 'વાવાઝોડું ચેતવણી' },
+  ta: { INFO: 'அறிவிப்பு', WARNING: 'கடல் எச்சரிக்கை', CRITICAL: 'புயல் எச்சரிக்கை' },
+  ml: { INFO: 'അറിയിപ്പ്', WARNING: 'തീരദേശ മുന്നറിയിപ്പ്', CRITICAL: 'ചുഴലിക്കാറ്റ് മുന്നറിയിപ്പ്' },
+  te: { INFO: 'నోటీసు', WARNING: 'తీరప్రాంత హెచ్చరిక', CRITICAL: 'తుఫాను హెచ్చరిక' },
+  kn: { INFO: 'ಸೂಚನೆ', WARNING: 'ಕರಾವಳಿ ಎಚ್ಚರಿಕೆ', CRITICAL: 'ಬಿರುಗಾಳಿ ಎಚ್ಚರಿಕೆ' },
+  bn: { INFO: 'বিজ্ঞপ্তি', WARNING: 'উপকূলীয় সতর্কতা', CRITICAL: 'ঝড় সতর্কতা' }
+};
 
 const CONFIG = {
   INFO: {
@@ -41,10 +57,16 @@ export const WarningBanner: React.FC<WarningBannerProps> = ({
   severity,
   title,
   message,
+  badgeText,
+  language = 'en',
   onDismiss,
 }) => {
   const conf = CONFIG[severity] ?? CONFIG.INFO;
   const { Icon } = conf;
+  const code = (['en', 'hi', 'mr', 'gu', 'ta', 'ml', 'te', 'kn', 'bn'].includes(language)
+    ? language
+    : 'en') as FishermanLang;
+  const displayBadge = badgeText || BADGE_MAP[code]?.[severity] || conf.badgeText;
 
   return (
     <div
@@ -58,7 +80,7 @@ export const WarningBanner: React.FC<WarningBannerProps> = ({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${conf.badge}`}>
-            {conf.badgeText}
+            {displayBadge}
           </span>
           <h4 className={`font-bold text-sm ${conf.text} leading-tight`}>{title}</h4>
         </div>

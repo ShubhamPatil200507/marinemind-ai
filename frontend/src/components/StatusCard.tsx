@@ -2,7 +2,7 @@
 // High-contrast, outdoor-readable marine safety status card
 import React from 'react';
 import { CheckCircle2, AlertTriangle, XCircle, RefreshCw, Radio } from 'lucide-react';
-import { getFishermanTranslation } from '../services/fishermanI18n';
+import { getFishermanTranslation, localizeAdvisory } from '../services/fishermanI18n';
 
 type RiskLevel = 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL' | 'UNKNOWN';
 type DataStatus = 'LIVE' | 'UNAVAILABLE' | 'UNKNOWN' | 'CACHED';
@@ -140,10 +140,10 @@ export function StatusCard({
             <span className="text-base shrink-0">📢</span>
             <div className="min-w-0">
               <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block leading-tight">
-                Official Coastal Advisory Match
+                {t.status.official_advisory_match}
               </span>
               <p className="text-xs sm:text-sm font-bold text-slate-900 leading-snug mt-0.5">
-                {activeAdvisory}
+                {localizeAdvisory(activeAdvisory, language).description}
               </p>
             </div>
           </div>
@@ -202,7 +202,7 @@ export function StatusCard({
               {dataStatus === 'LIVE'
                 ? t.status.live
                 : dataStatus === 'CACHED'
-                ? 'CACHED / OFFLINE'
+                ? (t.offline?.local_cache_badge || 'CACHED')
                 : t.status.unavailable}
             </span>
           </div>

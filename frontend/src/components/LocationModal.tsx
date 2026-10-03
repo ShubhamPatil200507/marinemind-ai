@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { MapPin, Navigation, Compass, X, Check, Crosshair, AlertCircle } from 'lucide-react';
 import { getTranslation } from '../services/i18n';
+import { localizeHarborName } from '../services/fishermanI18n';
 
 interface LocationModalProps {
   selectedLanguage?: string;
@@ -259,7 +260,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
                 >
                   <div className="flex items-start justify-between gap-1">
                     <span className="font-semibold text-xs text-slate-900 line-clamp-1">
-                      {preset.name}
+                      {localizeHarborName(preset.name, selectedLanguage)}
                     </span>
                     {isSelected && <Check className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
                   </div>
@@ -333,7 +334,7 @@ export const LocationModal: React.FC<LocationModalProps> = ({
                 type="submit"
                 className="w-full sm:w-auto h-8 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold shadow-xs transition-colors leading-none shrink-0 cursor-pointer"
               >
-                Apply Coordinates
+                {t.locationModal.apply_coords || 'Apply Coordinates'}
               </button>
             </div>
           </form>

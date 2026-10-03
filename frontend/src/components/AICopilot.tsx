@@ -7,6 +7,7 @@ import {
 import type { ChatResponse, PFZZone } from '../types/marine';
 import { AgentExecutionPanel } from './AgentExecutionPanel';
 import { getTranslation } from '../services/i18n';
+import { localizeHarborName } from '../services/fishermanI18n';
 
 interface Message {
   id: string;
@@ -15,6 +16,16 @@ interface Message {
   responsePayload?: ChatResponse;
   timestamp: string;
 }
+
+const MANIFEST_LABELS: Record<string, string> = {
+  en: 'Manifest', hi: 'घोषणापत्र', mr: 'मॅनिफेस्ट', gu: 'મેનિફેસ્ટ',
+  ta: 'அறிக்கை', ml: 'മാനിഫെസ്റ്റ്', te: 'మేనిఫెస్ట్', kn: 'ಮ್ಯಾನಿಫೆಸ್ಟ್', bn: 'ম্যানিফেস্ট'
+};
+
+const AIS_LABELS: Record<string, string> = {
+  en: 'AIS Active', hi: 'एआईएस सक्रिय', mr: 'एआयएस सक्रिय', gu: 'AIS સક્રિય',
+  ta: 'AIS இயங்குகிறது', ml: 'AIS സജീവം', te: 'AIS యాక్టివ్', kn: 'AIS ಸಕ್ರಿಯ', bn: 'AIS সক্রিয়'
+};
 
 interface AICopilotProps {
   onSendMessage: (query: string) => Promise<ChatResponse>;
@@ -60,7 +71,12 @@ export const AICopilot: React.FC<AICopilotProps> = ({
 
         if (selectedLanguage === 'hi') rec.lang = 'hi-IN';
         else if (selectedLanguage === 'mr') rec.lang = 'mr-IN';
+        else if (selectedLanguage === 'gu') rec.lang = 'gu-IN';
         else if (selectedLanguage === 'ta') rec.lang = 'ta-IN';
+        else if (selectedLanguage === 'ml') rec.lang = 'ml-IN';
+        else if (selectedLanguage === 'te') rec.lang = 'te-IN';
+        else if (selectedLanguage === 'kn') rec.lang = 'kn-IN';
+        else if (selectedLanguage === 'bn') rec.lang = 'bn-IN';
         else rec.lang = 'en-IN';
 
         rec.onresult = (event: any) => {
@@ -88,11 +104,18 @@ export const AICopilot: React.FC<AICopilotProps> = ({
 
   const toggleVoice = () => {
     if (!recognitionRef.current) {
-      const msg = selectedLanguage === 'ta' ? 'உங்கள் உலாவியில் குரல் அறிதல் ஆதரிக்கப்படவில்லை' :
-                  selectedLanguage === 'hi' ? 'आपके ब्राउज़र में वॉयस रिकग्निशन समर्थित नहीं है' :
-                  selectedLanguage === 'mr' ? 'आपल्या ब्राउझरमध्ये व्हॉइस ओळख समर्थित नाही' :
-                  'Web Speech API is not supported in this browser. Please use Google Chrome or Microsoft Edge.';
-      alert(msg);
+      const msgs: Record<string, string> = {
+        ta: 'உங்கள் உலாவியில் குரல் அறிதல் ஆதரிக்கப்படவில்லை',
+        hi: 'आपके ब्राउज़र में वॉयस रिकग्निशन समर्थित नहीं है',
+        mr: 'आपल्या ब्राउझरमध्ये व्हॉइस ओळख समर्थित नाही',
+        gu: 'તમારા બ્રાઉઝરમાં વૉઇસ રેકગ્નિશન સપોર્ટેડ નથી',
+        ml: 'നിങ്ങളുടെ ബ്രൗസറിൽ വോയ്‌സ് റെക്കഗ്നിഷൻ ലഭ്യമല്ല',
+        te: 'మీ బ్రౌజర్‌లో వాయిస్ రికగ్నిషన్ సపోర్ట్ చేయబడదు',
+        kn: 'ನಿಮ್ಮ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಬೆಂಬಲಿಸುವುದಿಲ್ಲ',
+        bn: 'আপনার ব্রাউজারে ভয়েস শনাক্তকরণ সমর্থিত নয়',
+        en: 'Web Speech API is not supported in this browser. Please use Google Chrome or Microsoft Edge.'
+      };
+      alert(msgs[selectedLanguage] || msgs.en);
       return;
     }
 
@@ -189,7 +212,7 @@ export const AICopilot: React.FC<AICopilotProps> = ({
             className="text-[11px] font-mono text-slate-600 hover:text-blue-700 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-300 rounded-md px-2 py-1 flex items-center gap-1.5 mt-1.5 transition-all cursor-pointer group shadow-2xs text-left max-w-full"
           >
             <MapPin className="w-3.5 h-3.5 text-blue-600 shrink-0 group-hover:scale-110 transition-transform" />
-            <span className="font-semibold text-slate-800 truncate">{vesselLocation.name ? vesselLocation.name.split('(')[0].trim() : t.copilot.current_sector}:</span>
+            <span className="font-semibold text-slate-800 truncate">{vesselLocation.name ? localizeHarborName(vesselLocation.name.split('(')[0].trim(), selectedLanguage) : t.copilot.current_sector}:</span>
             <span className="text-slate-600 hidden sm:inline">{vesselLocation.latitude.toFixed(2)}°N, {vesselLocation.longitude.toFixed(2)}°E</span>
             <span className="text-[10px] text-blue-600 font-sans font-semibold underline group-hover:no-underline ml-0.5 shrink-0">{t.common.change}</span>
           </button>
@@ -204,11 +227,11 @@ export const AICopilot: React.FC<AICopilotProps> = ({
               className="inline-flex items-center gap-1 bg-blue-50 hover:bg-blue-100 text-blue-700 px-2 py-1 rounded border border-blue-200 text-[10px] font-semibold transition-colors cursor-pointer"
             >
               <FileText className="w-3 h-3" />
-              <span>Manifest</span>
+              <span>{MANIFEST_LABELS[selectedLanguage] || MANIFEST_LABELS.en}</span>
             </button>
           )}
           <span className="inline-flex items-center gap-1 bg-slate-100 px-2 py-1 rounded border border-slate-200 text-slate-600">
-            AIS Active
+            {AIS_LABELS[selectedLanguage] || AIS_LABELS.en}
           </span>
         </div>
       </div>

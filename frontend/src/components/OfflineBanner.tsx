@@ -1,14 +1,16 @@
-// frontend/src/components/OfflineBanner.tsx
 import React from 'react';
 import { WifiOff, Radio, ShieldCheck } from 'lucide-react';
+import { getFishermanTranslation } from '../services/fishermanI18n';
 
 interface OfflineBannerProps {
   isOffline: boolean;
   isCachedData?: boolean;
+  language?: string;
 }
 
-export const OfflineBanner: React.FC<OfflineBannerProps> = ({ isOffline, isCachedData }) => {
+export const OfflineBanner: React.FC<OfflineBannerProps> = ({ isOffline, isCachedData, language = 'en' }) => {
   if (!isOffline && !isCachedData) return null;
+  const t = getFishermanTranslation(language);
 
   return (
     <div
@@ -24,18 +26,16 @@ export const OfflineBanner: React.FC<OfflineBannerProps> = ({ isOffline, isCache
         )}
         <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2 leading-tight">
           <span className="uppercase tracking-wider font-black text-amber-100 text-[10px]">
-            {isOffline ? 'Offshore Mode (Offline)' : 'Pre-Voyage Cache Active'}
+            {isOffline ? t.offline.offshore_mode : t.offline.cache_mode}
           </span>
           <span className="hidden sm:inline text-amber-300">·</span>
           <span className="text-white font-medium">
-            {isOffline
-              ? 'You are out of cellular coverage at sea. Using cached IMD bulletins and vessel navigation waypoints.'
-              : 'Serving verified cached coastal bulletin. Live sync will resume automatically when signal restores.'}
+            {isOffline ? t.offline.offline_desc : t.offline.cache_desc}
           </span>
         </div>
         <div className="ml-auto shrink-0 hidden md:flex items-center gap-1 text-[10px] bg-amber-700/80 px-2 py-0.5 rounded text-amber-100 font-semibold border border-amber-500/50">
           <ShieldCheck className="w-3 h-3 text-amber-200" />
-          <span>Local Safe Cache</span>
+          <span>{t.offline.local_cache_badge}</span>
         </div>
       </div>
     </div>

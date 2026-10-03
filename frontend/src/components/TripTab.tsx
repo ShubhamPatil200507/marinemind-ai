@@ -83,7 +83,7 @@ export const TripTab: React.FC<TripTabProps> = ({
                 }`}
               >
                 <List className="w-3.5 h-3.5" />
-                <span>Plan</span>
+                <span>{t.trip.view_plan}</span>
               </button>
               <button
                 type="button"
@@ -95,7 +95,7 @@ export const TripTab: React.FC<TripTabProps> = ({
                 }`}
               >
                 <MapIcon className="w-3.5 h-3.5" />
-                <span>Route</span>
+                <span>{t.trip.view_route}</span>
               </button>
             </div>
           )}
@@ -119,7 +119,7 @@ export const TripTab: React.FC<TripTabProps> = ({
             >
               {currentStep > 1 ? <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : '1'}
             </span>
-            <span className="truncate">Destination</span>
+            <span className="truncate">{t.trip.step1_title}</span>
           </div>
 
           <div
@@ -138,7 +138,7 @@ export const TripTab: React.FC<TripTabProps> = ({
             >
               {currentStep > 2 ? <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : '2'}
             </span>
-            <span className="truncate">Safety</span>
+            <span className="truncate">{t.trip.step2_title}</span>
           </div>
 
           <div
@@ -157,7 +157,7 @@ export const TripTab: React.FC<TripTabProps> = ({
             >
               3
             </span>
-            <span className="truncate">Safe Route</span>
+            <span className="truncate">{t.trip.step3_title}</span>
           </div>
         </div>
       </header>

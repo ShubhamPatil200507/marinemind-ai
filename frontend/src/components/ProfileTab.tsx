@@ -7,7 +7,12 @@ import {
 } from 'lucide-react';
 import type { UserProfile } from './AuthLanding';
 import { EMERGENCY_CONTACTS } from '../constants/emergency';
-import { getFishermanTranslation, SUPPORTED_LANGUAGES, type FishermanLang } from '../services/fishermanI18n';
+import { getFishermanTranslation, SUPPORTED_LANGUAGES, localizeHarborName, type FishermanLang } from '../services/fishermanI18n';
+
+const VIEW_ACTION_LABELS: Record<string, string> = {
+  en: 'View', hi: 'देखें', mr: 'पहा', gu: 'જુઓ', ta: 'பார்க்க',
+  ml: 'കാണുക', te: 'చూడండి', kn: 'ನೋಡಿ', bn: 'দেখুন'
+};
 
 interface ProfileTabProps {
   user: UserProfile | null;
@@ -77,7 +82,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
                     {t.profile.home_port}
                   </span>
                   <strong className="text-xs text-slate-900 font-bold truncate block">
-                    {user?.home_port || 'Mumbai Sassoon Docks'}
+                    {localizeHarborName(user?.home_port || 'Mumbai (Sassoon Docks)', language)}
                   </strong>
                 </div>
               </div>
@@ -262,7 +267,7 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
               </span>
             </div>
           </div>
-          <span className="text-blue-600 text-xs font-bold shrink-0">View</span>
+          <span className="text-blue-600 text-xs font-bold shrink-0">{VIEW_ACTION_LABELS[language] || 'View'}</span>
         </button>
       </section>
 

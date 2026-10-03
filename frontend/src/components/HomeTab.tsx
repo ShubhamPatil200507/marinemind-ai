@@ -11,7 +11,13 @@ import { FishingSpotCard } from './FishingSpotCard';
 import { WarningBanner } from './WarningBanner';
 import { AdvancedDetails } from './AdvancedDetails';
 import type { WeatherData, PFZZone, MarineAdvisory } from '../types/marine';
-import { getFishermanTranslation } from '../services/fishermanI18n';
+import {
+  getFishermanTranslation,
+  localizeAdvisory,
+  localizePortSignal,
+  localizeSeaState,
+  localizeHarborName
+} from '../services/fishermanI18n';
 
 interface HomeTabProps {
   weather: WeatherData;
@@ -113,7 +119,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
                 {t.greeting.port}
               </span>
               <span className="truncate text-slate-900 font-bold block text-[11px] sm:text-xs leading-tight">
-                {vesselLocation.name || `${vesselLocation.latitude.toFixed(2)}°N`}
+                {localizeHarborName(vesselLocation.name || `${vesselLocation.latitude.toFixed(2)}°N`, language)}
               </span>
             </div>
           </button>
@@ -127,21 +133,21 @@ export const HomeTab: React.FC<HomeTabProps> = ({
             <span className="text-lg sm:text-xl shrink-0" role="img" aria-label="India Flag">🇮🇳</span>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-blue-300 font-black uppercase tracking-wider text-[9px] sm:text-[10px]">IMD Marine Bulletin</span>
+                <span className="text-blue-300 font-black uppercase tracking-wider text-[9px] sm:text-[10px]">{t.bulletin.title}</span>
                 <span className="text-slate-500 text-[10px] hidden sm:inline">·</span>
                 <span className="text-slate-300 text-[10px] sm:text-xs font-medium truncate">{weather.imd_issuing_office || 'Government of India'}</span>
               </div>
               <div className="text-white text-xs font-bold flex items-center gap-2 mt-0.5 flex-wrap">
                 <span className="text-[11px] sm:text-xs">
-                  Signal: <span className={weather.port_signal && !weather.port_signal.includes('NIL') ? 'text-amber-400 font-black' : 'text-emerald-400 font-bold'}>{weather.port_signal || 'NIL AT ALL PORTS'}</span>
+                  {t.bulletin.signal}: <span className={weather.port_signal && !weather.port_signal.includes('NIL') ? 'text-amber-400 font-black' : 'text-emerald-400 font-bold'}>{localizePortSignal(weather.port_signal || t.bulletin.all_ports_nil, language)}</span>
                 </span>
                 <span className="text-slate-600 text-[10px]">|</span>
-                <span className="text-slate-300 font-normal text-[11px] sm:text-xs">{weather.sea_state}</span>
+                <span className="text-slate-300 font-normal text-[11px] sm:text-xs">{localizeSeaState(weather.sea_state, language)}</span>
               </div>
             </div>
           </div>
           <span className="hidden sm:inline-block px-2.5 py-1 bg-blue-950/80 border border-blue-500/40 text-blue-300 rounded text-[11px] font-bold shrink-0">
-            Govt Verified
+            {t.bulletin.verified}
           </span>
         </section>
       )}
@@ -261,16 +267,21 @@ export const HomeTab: React.FC<HomeTabProps> = ({
           {criticalAlerts.length > 0 && (
             <section aria-label="Marine Safety Advisories" className="space-y-2.5">
               <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 px-1">
-                Active Coastal Advisories ({criticalAlerts.length})
+                {t.bulletin.active_advisories_count} ({criticalAlerts.length})
               </h2>
-              {criticalAlerts.map((alt) => (
-                <WarningBanner
-                  key={alt.id}
-                  severity={alt.severity?.toUpperCase() === 'CRITICAL' ? 'CRITICAL' : 'WARNING'}
-                  title={alt.advisory_type}
-                  message={alt.description}
-                />
-              ))}
+              {criticalAlerts.map((alt) => {
+                const localized = localizeAdvisory(alt, language);
+                return (
+                  <WarningBanner
+                    key={alt.id}
+                    severity={alt.severity?.toUpperCase() === 'CRITICAL' ? 'CRITICAL' : 'WARNING'}
+                    title={localized.title}
+                    message={localized.description}
+                    badgeText={localized.badgeText}
+                    language={language}
+                  />
+                );
+              })}
             </section>
           )}
 
