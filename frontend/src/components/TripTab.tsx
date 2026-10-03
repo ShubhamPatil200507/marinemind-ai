@@ -56,9 +56,9 @@ export const TripTab: React.FC<TripTabProps> = ({
   const currentStep = routes.length > 0 ? 3 : activeZone ? 2 : 1;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-4 space-y-4">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
       {/* ── Header ── */}
-      <header className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+      <header className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
         <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
           <Navigation className="w-5 h-5 text-blue-600" />
           <span>{t.trip.title}</span>
@@ -128,21 +128,25 @@ export const TripTab: React.FC<TripTabProps> = ({
         </div>
       </header>
 
-      {/* ── Interactive Route Map ── */}
-      {mapElement && (
-        <section
-          aria-label="Route Navigation Map"
-          className="rounded-2xl overflow-hidden border-2 border-slate-200 shadow-2xs h-[260px] sm:h-[340px] w-full relative bg-slate-100"
-        >
-          {mapElement}
-        </section>
-      )}
+      {/* ── Responsive Route Navigation Grid ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Interactive Route Map (7 cols on lg, 8 cols on xl) */}
+        {mapElement && (
+          <section
+            aria-label="Route Navigation Map"
+            className="lg:col-span-7 xl:col-span-8 rounded-2xl overflow-hidden border-2 border-slate-200 shadow-2xs h-[320px] sm:h-[400px] lg:h-[620px] w-full relative bg-slate-100 lg:sticky lg:top-4"
+          >
+            {mapElement}
+          </section>
+        )}
 
-      {/* ── STEP 1: Select Destination Zone ── */}
-      <section
-        aria-label="Step 1 Destination Selection"
-        className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3.5 shadow-2xs"
-      >
+        {/* Right Column: Workflow Steps 1, 2, 3 (5 cols on lg, 4 cols on xl) */}
+        <div className={`space-y-4 ${mapElement ? 'lg:col-span-5 xl:col-span-4' : 'lg:col-span-12'}`}>
+          {/* STEP 1: Select Destination Zone */}
+          <section
+            aria-label="Step 1 Destination Selection"
+            className="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 space-y-3.5 shadow-2xs"
+          >
         <div className="flex items-center justify-between">
           <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
             {t.trip.step1_title}
@@ -355,6 +359,8 @@ export const TripTab: React.FC<TripTabProps> = ({
           </div>
         </section>
       )}
+        </div>
+      </div>
     </div>
   );
 };

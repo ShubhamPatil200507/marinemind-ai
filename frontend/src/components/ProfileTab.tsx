@@ -27,125 +27,133 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   const t = getFishermanTranslation(language);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-5 space-y-5">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6">
       {/* ── Header ── */}
-      <header className="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs">
+      <header className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
         <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
           <User className="w-5 h-5 text-blue-600" />
           <span>{t.profile.title}</span>
         </h1>
       </header>
 
-      {/* ── Skipper / Vessel Details Card ── */}
-      <section
-        aria-label="Skipper Details"
-        className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4"
-      >
-        <div className="flex items-center gap-3.5">
-          <div className="w-13 h-13 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-xs">
-            {user?.name ? user.name.charAt(0).toUpperCase() : 'C'}
-          </div>
-          <div>
-            <h2 className="text-lg font-black text-slate-900">
-              {user?.name || 'Capt. Ramesh Patil'}
-            </h2>
-            <p className="text-xs text-blue-700 font-bold">{t.profile.skipper_title}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
-            <Ship className="w-4 h-4 text-blue-600 shrink-0" />
-            <div className="min-w-0">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                {t.profile.vessel_id}
-              </span>
-              <strong className="text-xs text-slate-900 font-mono font-bold truncate block">
-                {user?.vessel_id || 'IND-MH-01-MM-8492'}
-              </strong>
+      {/* ── Responsive 2-Column Grid (1 Column on Mobile, 2 Columns on Laptop/Desktop) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column: Skipper Profile & Language Selector (6 cols on lg) */}
+        <div className="lg:col-span-6 space-y-6">
+          {/* Skipper / Vessel Details Card */}
+          <section
+            aria-label="Skipper Details"
+            className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs space-y-4"
+          >
+            <div className="flex items-center gap-3.5">
+              <div className="w-13 h-13 rounded-2xl bg-blue-600 text-white flex items-center justify-center font-black text-xl shadow-xs">
+                {user?.name ? user.name.charAt(0).toUpperCase() : 'C'}
+              </div>
+              <div>
+                <h2 className="text-lg font-black text-slate-900">
+                  {user?.name || 'Capt. Ramesh Patil'}
+                </h2>
+                <p className="text-xs text-blue-700 font-bold">{t.profile.skipper_title}</p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
-            <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
-            <div className="min-w-0">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                {t.profile.home_port}
-              </span>
-              <strong className="text-xs text-slate-900 font-bold truncate block">
-                {user?.home_port || 'Mumbai Sassoon Docks'}
-              </strong>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 sm:col-span-2">
-            <Phone className="w-4 h-4 text-slate-600 shrink-0" />
-            <div className="min-w-0">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-                {t.profile.registered_phone}
-              </span>
-              <strong className="text-xs text-slate-900 font-mono font-bold truncate block">
-                {user?.phone || '+91 98201 45892'}
-              </strong>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── 1-Tap Language Switcher (Large Tactile Tiles) ── */}
-      <section
-        aria-label="Language Selector"
-        className="bg-white rounded-2xl border-2 border-blue-100 p-5 shadow-2xs space-y-3.5"
-      >
-        <div className="flex items-center gap-2">
-          <Globe className="w-5 h-5 text-blue-600" />
-          <div>
-            <h2 className="text-sm font-black text-slate-900">
-              {t.profile.preferred_language}
-            </h2>
-            <p className="text-[11px] text-slate-500 font-medium">
-              {t.profile.select_language_sub}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2.5">
-          {SUPPORTED_LANGUAGES.map((item) => {
-            const isSelected = language === item.code;
-            return (
-              <button
-                key={item.code}
-                type="button"
-                onClick={() => onLanguageChange(item.code)}
-                className={`flex items-center justify-between p-3.5 rounded-xl border-2 transition-all min-h-[56px] text-left ${
-                  isSelected
-                    ? 'border-blue-600 bg-blue-50/90 text-blue-950 font-black shadow-xs ring-2 ring-blue-600/30'
-                    : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'
-                }`}
-              >
-                <div>
-                  <span className="block text-base font-bold leading-tight">
-                    {item.native}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <Ship className="w-4 h-4 text-blue-600 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                    {t.profile.vessel_id}
                   </span>
-                  <span className="text-[11px] text-slate-500 font-medium">
-                    {item.label}
-                  </span>
+                  <strong className="text-xs text-slate-900 font-mono font-bold truncate block">
+                    {user?.vessel_id || 'IND-MH-01-MM-8492'}
+                  </strong>
                 </div>
+              </div>
 
-                <div
-                  className={`w-5 h-5 rounded-full flex items-center justify-center border-2 shrink-0 ${
-                    isSelected
-                      ? 'border-blue-600 bg-blue-600 text-white'
-                      : 'border-slate-300'
-                  }`}
-                >
-                  {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                    {t.profile.home_port}
+                  </span>
+                  <strong className="text-xs text-slate-900 font-bold truncate block">
+                    {user?.home_port || 'Mumbai Sassoon Docks'}
+                  </strong>
                 </div>
-              </button>
-            );
-          })}
+              </div>
+
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-200 sm:col-span-2">
+                <Phone className="w-4 h-4 text-slate-600 shrink-0" />
+                <div className="min-w-0">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
+                    {t.profile.registered_phone}
+                  </span>
+                  <strong className="text-xs text-slate-900 font-mono font-bold truncate block">
+                    {user?.phone || '+91 98201 45892'}
+                  </strong>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* 1-Tap Language Switcher (All Coastal Languages) */}
+          <section
+            aria-label="Language Selector"
+            className="bg-white rounded-2xl border-2 border-blue-100 p-5 shadow-2xs space-y-3.5"
+          >
+            <div className="flex items-center gap-2">
+              <Globe className="w-5 h-5 text-blue-600" />
+              <div>
+                <h2 className="text-sm font-black text-slate-900">
+                  {t.profile.preferred_language}
+                </h2>
+                <p className="text-[11px] text-slate-500 font-medium">
+                  {t.profile.select_language_sub}
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-2.5">
+              {SUPPORTED_LANGUAGES.map((item) => {
+                const isSelected = language === item.code;
+                return (
+                  <button
+                    key={item.code}
+                    type="button"
+                    onClick={() => onLanguageChange(item.code)}
+                    className={`flex items-center justify-between p-3 rounded-xl border-2 transition-all min-h-[56px] text-left ${
+                      isSelected
+                        ? 'border-blue-600 bg-blue-50/90 text-blue-950 font-black shadow-xs ring-2 ring-blue-600/30'
+                        : 'border-slate-200 bg-white text-slate-800 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className="min-w-0 pr-1">
+                      <span className="block text-sm sm:text-base font-bold leading-tight truncate">
+                        {item.native}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-medium block truncate">
+                        {item.label}
+                      </span>
+                    </div>
+
+                    <div
+                      className={`w-4 h-4 rounded-full flex items-center justify-center border-2 shrink-0 ${
+                        isSelected
+                          ? 'border-blue-600 bg-blue-600 text-white'
+                          : 'border-slate-300'
+                      }`}
+                    >
+                      {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
         </div>
-      </section>
+
+        {/* Right Column: Emergency SOS Contacts & Legal (6 cols on lg) */}
+        <div className="lg:col-span-6 space-y-6">
 
       {/* ── Official Marine Emergency Contacts (High visibility, direct 1-tap call) ── */}
       <section
@@ -269,6 +277,8 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
           <span>{t.profile.logout}</span>
         </button>
       </section>
+        </div>
+      </div>
     </div>
   );
 };

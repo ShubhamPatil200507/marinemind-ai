@@ -5,7 +5,7 @@ import { CheckCircle2, AlertTriangle, XCircle, RefreshCw, Radio } from 'lucide-r
 import { getFishermanTranslation } from '../services/fishermanI18n';
 
 type RiskLevel = 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL' | 'UNKNOWN';
-type DataStatus = 'LIVE' | 'UNAVAILABLE' | 'UNKNOWN';
+type DataStatus = 'LIVE' | 'UNAVAILABLE' | 'UNKNOWN' | 'CACHED';
 
 interface StatusCardProps {
   riskLevel: RiskLevel;
@@ -163,15 +163,25 @@ export function StatusCard({
               className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
                 dataStatus === 'LIVE'
                   ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                  : dataStatus === 'CACHED'
+                  ? 'bg-amber-100 text-amber-800 border border-amber-300'
                   : 'bg-slate-200 text-slate-700'
               }`}
             >
               <span
                 className={`w-2 h-2 rounded-full ${
-                  dataStatus === 'LIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+                  dataStatus === 'LIVE'
+                    ? 'bg-emerald-500 animate-pulse'
+                    : dataStatus === 'CACHED'
+                    ? 'bg-amber-500'
+                    : 'bg-slate-400'
                 }`}
               />
-              {dataStatus === 'LIVE' ? t.status.live : t.status.unavailable}
+              {dataStatus === 'LIVE'
+                ? t.status.live
+                : dataStatus === 'CACHED'
+                ? 'CACHED / OFFLINE'
+                : t.status.unavailable}
             </span>
           </div>
         </div>

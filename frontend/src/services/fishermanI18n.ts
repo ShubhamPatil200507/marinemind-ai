@@ -2,7 +2,7 @@
 // Centralized, verified multilingual translations for MarineMind Fisherman UX.
 // Supported languages: English (en), Hindi (hi), Marathi (mr), Tamil (ta).
 
-export type FishermanLang = 'en' | 'hi' | 'mr' | 'ta';
+export type FishermanLang = 'en' | 'hi' | 'mr' | 'gu' | 'ta' | 'ml' | 'te' | 'kn' | 'bn';
 
 export interface LanguageOption {
   code: FishermanLang;
@@ -12,10 +12,15 @@ export interface LanguageOption {
 }
 
 export const SUPPORTED_LANGUAGES: LanguageOption[] = [
-  { code: 'en', label: 'English', native: 'English', region: 'All Harbors' },
+  { code: 'en', label: 'English', native: 'English', region: 'All Harbors / Universal' },
   { code: 'hi', label: 'Hindi', native: 'हिन्दी', region: 'राष्ट्रीय' },
   { code: 'mr', label: 'Marathi', native: 'मराठी', region: 'महाराष्ट्र (Mumbai / Ratnagiri)' },
+  { code: 'gu', label: 'Gujarati', native: 'ગુજરાતી', region: 'ગુજરાત (Veraval / Porbandar / Jakhau)' },
   { code: 'ta', label: 'Tamil', native: 'தமிழ்', region: 'தமிழ்நாடு (Chennai / Rameswaram)' },
+  { code: 'ml', label: 'Malayalam', native: 'മലയാളം', region: 'കേരളം (Kochi / Kollam / Munambam)' },
+  { code: 'te', label: 'Telugu', native: 'తెలుగు', region: 'ఆంధ్రప్రదేశ్ (Visakhapatnam / Kakinada)' },
+  { code: 'kn', label: 'Kannada', native: 'ಕನ್ನಡ', region: 'ಕರ್ನಾಟಕ (Mangalore / Malpe / Karwar)' },
+  { code: 'bn', label: 'Bengali', native: 'বাংলা', region: 'পশ্চিমবঙ্গ ও ওড়িশা (Digha / Kakdwip)' },
 ];
 
 export interface FishermanTranslations {
@@ -829,6 +834,6 @@ const TRANSLATIONS: Record<FishermanLang, FishermanTranslations> = {
  * Falls back to English if the language is unsupported.
  */
 export function getFishermanTranslation(lang: string = 'en'): FishermanTranslations {
-  const code = (['en', 'hi', 'mr', 'ta'].includes(lang) ? lang : 'en') as FishermanLang;
-  return TRANSLATIONS[code];
+  const code = (['en', 'hi', 'mr', 'gu', 'ta', 'ml', 'te', 'kn', 'bn'].includes(lang) ? lang : 'en') as FishermanLang;
+  return TRANSLATIONS[code] || TRANSLATIONS['en'];
 }

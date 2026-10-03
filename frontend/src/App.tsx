@@ -16,6 +16,8 @@ import { HomeTab } from './components/HomeTab';
 import { SpotsTab } from './components/SpotsTab';
 import { TripTab } from './components/TripTab';
 import { ProfileTab } from './components/ProfileTab';
+import { OfflineBanner } from './components/OfflineBanner';
+import { useNetworkStatus, saveOfflineBundle, getOfflineBundle } from './services/offlineCache';
 
 import {
   sendChatQuery,
@@ -124,7 +126,8 @@ export function App() {
   const [currentChatResponse, setCurrentChatResponse] = useState<ChatResponse | null>(null);
   const [isLoadingChat, setIsLoadingChat] = useState<boolean>(false);
   const [mapFocus, setMapFocus] = useState({ latitude: 18.922, longitude: 72.8347, zoom: 11 });
-  const [dataStatus, setDataStatus] = useState<'LIVE' | 'UNAVAILABLE' | 'UNKNOWN'>('UNKNOWN');
+  const isOnline = useNetworkStatus();
+  const [dataStatus, setDataStatus] = useState<'LIVE' | 'UNAVAILABLE' | 'UNKNOWN' | 'CACHED'>('UNKNOWN');
   const [lastUpdated, setLastUpdated] = useState<string | undefined>(undefined);
 
   // ── Modals ────────────────────────────────────────────────────────────────
@@ -142,6 +145,22 @@ export function App() {
   const loadData = useCallback(async (lat?: number, lon?: number) => {
     const activeLat = lat ?? vesselLocation.latitude;
     const activeLon = lon ?? vesselLocation.longitude;
+
+    // Fast-path: When deep-sea offline, immediately restore pre-voyage cache without network timeouts
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const cached = getOfflineBundle();
+      if (cached) {
+        setWeather(cached.weather);
+        setPfzZones(cached.pfzZones);
+        setGeofences(cached.geofences);
+        setRoutesData(cached.routesData);
+        setAlerts(cached.alerts);
+        setDataStatus('CACHED');
+        setLastUpdated(cached.timestamp ? new Date(cached.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : undefined);
+        return;
+      }
+    }
+
     try {
       const [w, pfz, geo, r, alt] = await Promise.all([
         fetchCurrentWeather(activeLat, activeLon),
@@ -155,6 +174,22 @@ export function App() {
       setGeofences(geo);
       setRoutesData(r);
       setAlerts(alt);
+
+      // Save pre-voyage offline bundle into local persistent storage
+      saveOfflineBundle({
+        weather: w,
+        pfzZones: pfz,
+        geofences: geo,
+        routesData: r,
+        alerts: alt,
+        vesselLocation: {
+          latitude: activeLat,
+          longitude: activeLon,
+          name: vesselLocation.name,
+          heading_deg: vesselLocation.heading_deg
+        }
+      });
+
       // Check provenance from response if available
       const wAny = w as any;
       if (wAny?.provenance?.status === 'LIVE') {
@@ -166,10 +201,28 @@ export function App() {
         setDataStatus('UNKNOWN');
       }
     } catch (err) {
-      console.error('Failed to load marine data:', err);
-      setDataStatus('UNAVAILABLE');
+      console.warn('Network fetch failed, checking offline bundle fallback:', err);
+      const cached = getOfflineBundle();
+      if (cached) {
+        setWeather(cached.weather);
+        setPfzZones(cached.pfzZones);
+        setGeofences(cached.geofences);
+        setRoutesData(cached.routesData);
+        setAlerts(cached.alerts);
+        setDataStatus('CACHED');
+        setLastUpdated(cached.timestamp ? new Date(cached.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : undefined);
+      } else {
+        setDataStatus('UNAVAILABLE');
+      }
     }
-  }, [vesselLocation.latitude, vesselLocation.longitude]);
+  }, [vesselLocation.latitude, vesselLocation.longitude, vesselLocation.name, vesselLocation.heading_deg]);
+
+  // Auto-sync when signal restores
+  useEffect(() => {
+    if (isOnline) {
+      loadData();
+    }
+  }, [isOnline]);
 
   // ── Detect Live Hardware GPS ───────────────────────────────────────────────
   const handleDetectGPS = useCallback(() => {
@@ -325,6 +378,9 @@ export function App() {
 
   return (
     <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
+      {/* ── Offline-first maritime banner for deep-sea fishing ─────────── */}
+      <OfflineBanner isOffline={!isOnline} isCachedData={dataStatus === 'CACHED'} />
+
       {/* ── Main content area (scrollable) ─────────────────────────────── */}
       <main className="flex-1 overflow-y-auto pb-16">
         <ErrorBoundary>
