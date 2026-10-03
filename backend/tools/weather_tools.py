@@ -194,6 +194,23 @@ def get_weather_forecast(lat: float, lon: float, time_window: str = "now") -> We
     storm_surge = imd_bulletin.get("storm_surge_warning", "NIL")
     imd_cyclone = imd_bulletin.get("cyclone_status", CycloneStatus.UNKNOWN)
 
+    # Reconcile risk level so system decision STRICTLY MATCHES official coastal advisories and port signals
+    port_sig_upper = port_signal.upper()
+    if imd_cyclone == CycloneStatus.ACTIVE_CYCLONE or any(k in port_sig_upper for k in ["VII", "VIII", "IX", "X", "GREAT DANGER"]):
+        risk_lvl = "CRITICAL"
+        sea_state = f"Cyclonic / Extreme Hazard ({port_signal})"
+    elif imd_cyclone == CycloneStatus.WARNING or any(k in port_sig_upper for k in ["IV", "V", "VI", "DANGER"]):
+        risk_lvl = "CRITICAL"
+        sea_state = f"High Danger / Rough Swell ({port_signal})"
+    elif imd_cyclone == CycloneStatus.WATCH or any(k in port_sig_upper for k in ["SIGNAL NUMBER III", "SIGNAL NO. 3", "LOCAL CAUTIONARY", "SQUALL"]):
+        if risk_lvl == "LOW":
+            risk_lvl = "MODERATE"
+        if "SQUALL" in port_sig_upper or wind_kmh >= 35.0:
+            risk_lvl = "HIGH"
+    elif storm_surge and "NIL" not in storm_surge.upper():
+        if risk_lvl == "LOW":
+            risk_lvl = "MODERATE"
+
     # 5. Build data provenance
     if data_is_live and imd_bulletin.get("is_live", False):
         provenance = DataProvenance(

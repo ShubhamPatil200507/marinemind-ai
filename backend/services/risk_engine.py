@@ -138,11 +138,23 @@ def calculate_marine_risk(
         1
     )
 
-    # Classify Risk Category
+    # Classify Risk Category & Enforce strict alignment with official coastal advisories
     if geofence.is_inside:
         final_score = max(final_score, 85.0)
         risk_category = "CRITICAL"
         recommendation = f"CRITICAL GEOFENCE ALERT: Vessel inside restricted perimeter ({geofence.nearest_zone_name}). Cease operations and alter course immediately."
+    elif cyclone_status == CycloneStatus.ACTIVE_CYCLONE:
+        final_score = max(final_score, 92.0)
+        risk_category = "CRITICAL"
+        recommendation = f"CRITICAL CYCLONE ALERT ({port_sig}): Active cyclonic system affecting coastal waters. Strictly STAY ASHORE. All port operations suspended."
+    elif cyclone_status == CycloneStatus.WARNING or any(k in port_sig.upper() for k in ["IV", "V", "VI", "VII", "VIII", "IX", "X", "DANGER"]):
+        final_score = max(final_score, 82.0)
+        risk_category = "CRITICAL"
+        recommendation = f"OFFICIAL PORT DANGER SIGNAL ({port_sig}): Dangerous squalls and swell. Fishermen advised not to venture into deep sea. Stay ashore."
+    elif cyclone_status == CycloneStatus.WATCH or any(k in port_sig.upper() for k in ["SIGNAL NUMBER III", "SIGNAL NO. 3", "LOCAL CAUTIONARY", "SQUALL"]):
+        final_score = max(final_score, 58.0)
+        risk_category = "HIGH" if "SQUALL" in port_sig.upper() or ws >= 35.0 else "MODERATE"
+        recommendation = f"PORT CAUTIONARY SIGNAL HOISTED ({port_sig}): Squally sea conditions. Artisanal craft advised to operate strictly nearshore and monitor port signals."
     elif final_score <= 25.0:
         risk_category = "LOW"
         recommendation = "Safe marine conditions. Favorable for full-day coastal and offshore operations."

@@ -56,23 +56,102 @@ const DEFAULT_WEATHER: WeatherData = {
   forecast_summary: 'Moderate sea state. Safe nearshore operations; monitor afternoon swells.'
 };
 
+// Helper: Reconciles atmospheric telemetry, IMD port signals, and active marine advisories
+function deriveConsensusRisk(
+  w: WeatherData,
+  alts: MarineAdvisory[],
+  chat: ChatResponse | null
+): { score: number; level: 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL'; advisory?: string } {
+  const portSig = (w.port_signal || '').toUpperCase();
+  const isPortDanger = ['IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'DANGER', 'GREAT DANGER'].some(k => portSig.includes(k));
+  const isPortCaution = ['SIGNAL NUMBER III', 'SIGNAL NO. 3', 'LOCAL CAUTIONARY', 'SQUALL'].some(k => portSig.includes(k));
+
+  const criticalAlert = alts?.find(a => a.severity?.toUpperCase() === 'CRITICAL');
+  const warningAlert = alts?.find(a => a.severity?.toUpperCase() === 'WARNING');
+  const cautionAlert = alts?.find(a => a.severity?.toUpperCase() === 'CAUTION');
+
+  // Match authoritative advisory text if present
+  let advisory: string | undefined;
+  if (criticalAlert) {
+    advisory = criticalAlert.description || criticalAlert.advisory_type;
+  } else if (w.cyclone_alert) {
+    advisory = 'Active IMD Coastal Cyclone Warning';
+  } else if (isPortDanger) {
+    advisory = `Official Port Danger Signal: ${w.port_signal}`;
+  } else if (warningAlert) {
+    advisory = warningAlert.description || warningAlert.advisory_type;
+  } else if (isPortCaution) {
+    advisory = `Official Port Cautionary Signal: ${w.port_signal}`;
+  } else if (cautionAlert) {
+    advisory = cautionAlert.description || cautionAlert.advisory_type;
+  }
+
+  // 1. Critical Overrides (Cyclone alert, Port danger signal IV-X, or Critical advisory)
+  if (w.cyclone_alert || isPortDanger || !!criticalAlert) {
+    return {
+      score: Math.max(chat?.risk_score ?? 90, 88),
+      level: 'CRITICAL',
+      advisory
+    };
+  }
+
+  // 2. High Risk / Warning Overrides (Port Caution Signal III, Squall, Warning advisory, High waves/winds)
+  if (isPortCaution || !!warningAlert || w.wind_speed_kmh >= 38 || w.wave_height_m >= 2.5) {
+    return {
+      score: Math.max(chat?.risk_score ?? 68, 65),
+      level: 'HIGH',
+      advisory
+    };
+  }
+
+  // 3. Chat copilot response if available
+  if (chat?.risk_score !== undefined && chat?.risk_level) {
+    const raw = chat.risk_level.toUpperCase();
+    const lvl = (['LOW', 'MODERATE', 'HIGH', 'CRITICAL'].includes(raw) ? raw : 'MODERATE') as 'LOW' | 'MODERATE' | 'HIGH' | 'CRITICAL';
+    return {
+      score: chat.risk_score,
+      level: lvl,
+      advisory
+    };
+  }
+
+  // 4. Weather baseline
+  const rawW = (w.risk_level || '').toUpperCase();
+  if (rawW === 'CRITICAL') return { score: 88, level: 'CRITICAL', advisory };
+  if (rawW === 'HIGH') return { score: 68, level: 'HIGH', advisory };
+  if (rawW === 'LOW' && w.wave_height_m <= 1.2 && w.wind_speed_kmh <= 20) {
+    return { score: 18, level: 'LOW', advisory };
+  }
+  return { score: 38, level: 'MODERATE', advisory };
+}
+
 export function App() {
   // ── Auth ──────────────────────────────────────────────────────────────────
+  // Fresh visits land directly on the Login & Registration portal
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     try {
-      const saved = localStorage.getItem('marinemind_user');
+      const saved = sessionStorage.getItem('marinemind_user');
       return saved ? JSON.parse(saved) : null;
     } catch { return null; }
   });
 
   const handleLogin = (user: UserProfile) => {
     setCurrentUser(user);
-    try { localStorage.setItem('marinemind_user', JSON.stringify(user)); } catch {}
+    try {
+      sessionStorage.setItem('marinemind_user', JSON.stringify(user));
+      localStorage.setItem('marinemind_user', JSON.stringify(user));
+      if (user.token) {
+        sessionStorage.setItem('marinemind_token', user.token);
+        localStorage.setItem('marinemind_token', user.token);
+      }
+    } catch {}
   };
 
   const handleLogout = () => {
     setCurrentUser(null);
     try {
+      sessionStorage.removeItem('marinemind_user');
+      sessionStorage.removeItem('marinemind_token');
       localStorage.removeItem('marinemind_user');
       localStorage.removeItem('marinemind_token');
     } catch {}
@@ -137,9 +216,11 @@ export function App() {
   // ── Map focus zone (for Spots → Ask navigation) ───────────────────────────
   const [focusedZone, setFocusedZone] = useState<PFZZone | null>(null);
 
-  // ── Risk score (from last chat response or weather) ───────────────────────
-  const riskScore = currentChatResponse?.risk_score ?? 38;
-  const riskLevel = currentChatResponse?.risk_level ?? weather.risk_level?.toUpperCase() ?? 'MODERATE';
+  // ── Authoritative Risk Consensus (reconciles weather, IMD bulletins & advisories) ──
+  const consensusRisk = deriveConsensusRisk(weather, alerts, currentChatResponse);
+  const riskScore = consensusRisk.score;
+  const riskLevel = consensusRisk.level;
+  const activeAdvisory = consensusRisk.advisory;
 
   // ── Load initial marine datasets ──────────────────────────────────────────
   const loadData = useCallback(async (lat?: number, lon?: number) => {
@@ -401,6 +482,7 @@ export function App() {
               onRefresh={() => loadData()}
               onOpenLocationModal={() => setIsLocationModalOpen(true)}
               onDetectGPS={handleDetectGPS}
+              activeAdvisory={activeAdvisory}
             />
           )}
 

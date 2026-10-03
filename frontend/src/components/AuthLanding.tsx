@@ -1,10 +1,13 @@
 // frontend/src/components/AuthLanding.tsx
+// Mobile-first Vessel Authentication & Landing Portal for MarineMind AI
 import React, { useState } from 'react';
 import {
   Compass, Anchor, ShieldCheck, Waves, Globe, Radio,
-  ArrowRight, KeyRound, User, Phone, MapPin, CheckCircle2, AlertCircle, ChevronDown, ShieldAlert
+  ArrowRight, KeyRound, User, Phone, MapPin, AlertCircle, ChevronDown,
+  Eye, EyeOff, Sparkles, Ship
 } from 'lucide-react';
 import { getTranslation } from '../services/i18n';
+import { SUPPORTED_LANGUAGES, type FishermanLang } from '../services/fishermanI18n';
 import { API_BASE } from '../services/api';
 
 export interface UserProfile {
@@ -36,6 +39,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
   // Sign In Form State
   const [signInIdentifier, setSignInIdentifier] = useState('IND-MH-01-MM-8492');
   const [signInPassword, setSignInPassword] = useState('marinepassword');
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
 
   // Register Form State
   const [regName, setRegName] = useState('');
@@ -43,6 +47,14 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
   const [regPhone, setRegPhone] = useState('');
   const [regHarbor, setRegHarbor] = useState('Mumbai (Sassoon Docks)');
   const [regPassword, setRegPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
+
+  // Quick Skipper Credential Fill
+  const handleSelectQuickSkipper = (identifier: string) => {
+    setSignInIdentifier(identifier);
+    setSignInPassword('marinepassword');
+    setErrorMsg(null);
+  };
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +89,10 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
     e.preventDefault();
     if (!regName.trim() || !regVesselId.trim() || !regPhone.trim() || !regPassword.trim()) {
       setErrorMsg('Please complete all required fields.');
+      return;
+    }
+    if (regPassword.length < 8) {
+      setErrorMsg('Marine PIN / Password must be at least 8 characters long.');
       return;
     }
     setErrorMsg(null);
@@ -129,10 +145,10 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
-      {/* Top Header Bar (Unified matching main Navbar design) */}
+    <div className="min-h-[100dvh] bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-blue-600 selection:text-white">
+      {/* ── Top Maritime Navigation Header ── */}
       <header className="bg-slate-900 border-b border-slate-800 text-white sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto px-3.5 sm:px-6 h-14 flex items-center justify-between gap-2.5">
           <div className="flex items-center gap-2 shrink-0">
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white shadow-xs shrink-0">
               <Compass className="w-4 h-4" />
@@ -149,12 +165,12 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
 
           <div className="flex items-center gap-2 shrink-0">
             {/* Live Telemetry Indicator */}
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/40 border border-emerald-500/50 text-emerald-300 text-xs font-mono font-medium leading-none h-8">
-              <Radio className="w-3.5 h-3.5 shrink-0" />
+            <div className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1 rounded-lg bg-emerald-950/40 border border-emerald-500/50 text-emerald-300 text-xs font-mono font-medium leading-none h-8">
+              <Radio className="w-3.5 h-3.5 shrink-0 animate-pulse text-emerald-400" />
               <span className="hidden sm:inline leading-none">{t.auth.badge_live_satellite}</span>
             </div>
 
-            {/* Language Selector (Matching Navbar language pill) */}
+            {/* All 9 Indian Coastal Languages Dropdown */}
             <div className="relative h-8 inline-flex items-center bg-slate-800 hover:bg-slate-700/80 border border-slate-700 hover:border-slate-600 rounded-lg text-xs transition-colors shrink-0 group">
               <Globe className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-400 ml-2 mr-1 shrink-0 pointer-events-none transition-colors" />
               <select
@@ -163,10 +179,11 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                 aria-label="Select Language"
                 className="bg-transparent text-slate-200 font-medium text-xs focus:outline-none cursor-pointer leading-none py-0 pl-0 pr-6 border-0 appearance-none h-full"
               >
-                <option value="en" className="bg-slate-900 text-white">English</option>
-                <option value="hi" className="bg-slate-900 text-white">हिन्दी</option>
-                <option value="mr" className="bg-slate-900 text-white">मराठी</option>
-                <option value="ta" className="bg-slate-900 text-white">தமிழ்</option>
+                {SUPPORTED_LANGUAGES.map((lang) => (
+                  <option key={lang.code} value={lang.code} className="bg-slate-900 text-white">
+                    {lang.native} ({lang.label})
+                  </option>
+                ))}
               </select>
               <ChevronDown className="w-3 h-3 text-slate-400 group-hover:text-white absolute right-1.5 pointer-events-none transition-colors" />
             </div>
@@ -174,77 +191,41 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-8 sm:py-10 flex flex-col justify-center">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          {/* Left Column: Platform Capabilities & Hero */}
-          <div className="lg:col-span-6 space-y-4">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold leading-none">
-              <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>
-              <span>{t.auth.mopsw_badge}</span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight leading-tight">
-              {t.auth.welcome_title}
-            </h1>
-
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
-              {t.auth.welcome_subtitle}
-            </p>
-
-            {/* Feature Cards matching Dashboard styling */}
-            <div className="space-y-3 pt-2">
-              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0 mt-0.5">
-                  <Compass className="w-4 h-4" />
+      {/* ── Main Container ── */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3.5 sm:px-6 py-4 sm:py-8 flex flex-col justify-center">
+        {/* Responsive Grid: Order 1 on mobile shows the Authentication card right away! */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8 items-start">
+          
+          {/* ── Authentication Card (Top on Mobile, Right on Desktop) ── */}
+          <div className="order-1 lg:order-2 lg:col-span-6">
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-7 shadow-xs">
+              
+              {/* Header Title inside card */}
+              <div className="flex items-center justify-between gap-2 mb-3.5 pb-2.5 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                    <Ship className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
+                      Vessel Skipper Portal
+                    </h2>
+                    <span className="text-[11px] text-slate-500 font-medium block">
+                      Indian Coastal Marine Safety Network
+                    </span>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <h3 className="font-bold text-xs sm:text-sm text-slate-900">
-                    {t.auth.feature_agents_title}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed break-words">
-                    {t.auth.feature_agents_desc}
-                  </p>
-                </div>
+
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
+                  Secure Access
+                </span>
               </div>
 
-              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5">
-                  <Waves className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="font-bold text-xs sm:text-sm text-slate-900">
-                    {t.auth.feature_satellite_title}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed break-words">
-                    {t.auth.feature_satellite_desc}
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0 mt-0.5">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div className="min-w-0">
-                  <h3 className="font-bold text-xs sm:text-sm text-slate-900">
-                    {t.auth.feature_imbl_title}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed break-words">
-                    {t.auth.feature_imbl_desc}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Authentication Card matching app light theme */}
-          <div className="lg:col-span-6">
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-xs">
-              {/* Quick Evaluator Access Banner */}
-              <div className="mb-5 p-4 rounded-xl bg-blue-50/70 border border-blue-200 space-y-2">
+              {/* Instant 1-Click Evaluator Access */}
+              <div className="mb-4 p-3 sm:p-3.5 rounded-xl bg-blue-50/80 border border-blue-200 space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold text-blue-900 uppercase tracking-wider font-mono">
+                  <span className="text-[11px] font-bold text-blue-900 uppercase tracking-wider font-mono flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-blue-600" />
                     {t.auth.eval_badge}
                   </span>
                   <span className="text-[10px] px-2 py-0.5 rounded font-semibold bg-blue-100 text-blue-800 border border-blue-300">
@@ -258,26 +239,27 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                   type="button"
                   onClick={handleInstantAccess}
                   disabled={loading}
-                  className="w-full h-10 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full h-9 sm:h-10 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>{loading ? t.auth.authenticating : t.auth.instant_access_btn}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="relative flex items-center justify-center my-4">
+              {/* Divider */}
+              <div className="relative flex items-center justify-center my-3.5">
                 <div className="border-t border-slate-200 w-full"></div>
-                <span className="bg-white px-3 text-[11px] text-slate-400 uppercase tracking-wider font-mono shrink-0">
+                <span className="bg-white px-3 text-[10px] sm:text-[11px] text-slate-400 uppercase tracking-wider font-mono shrink-0">
                   {t.auth.or_divider}
                 </span>
               </div>
 
-              {/* Tab Selector */}
-              <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 mb-4">
+              {/* Tab Selector: Sign In vs Register */}
+              <div className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 mb-3.5">
                 <button
                   type="button"
                   onClick={() => { setActiveTab('signin'); setErrorMsg(null); }}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     activeTab === 'signin'
                       ? 'bg-white text-slate-900 shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -288,7 +270,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                 <button
                   type="button"
                   onClick={() => { setActiveTab('register'); setErrorMsg(null); }}
-                  className={`flex-1 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                  className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     activeTab === 'register'
                       ? 'bg-white text-slate-900 shadow-2xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -298,16 +280,59 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                 </button>
               </div>
 
+              {/* Error Alert Box */}
               {errorMsg && (
-                <div className="mb-4 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium flex items-start gap-2">
+                <div className="mb-3.5 p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs font-medium flex items-start gap-2">
                   <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                   <span className="leading-snug">{errorMsg}</span>
                 </div>
               )}
 
-              {/* Sign In Form */}
+              {/* ── SIGN IN FORM ── */}
               {activeTab === 'signin' && (
                 <form onSubmit={handleSignIn} className="space-y-3.5">
+                  {/* Quick Skipper Fill Options */}
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                      Quick Skipper Login (1-Tap Select)
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleSelectQuickSkipper('IND-MH-01-MM-8492')}
+                        className={`p-2 sm:p-2.5 rounded-xl border text-left transition-all ${
+                          signInIdentifier === 'IND-MH-01-MM-8492'
+                            ? 'bg-blue-50/80 border-blue-500 shadow-2xs ring-1 ring-blue-500'
+                            : 'bg-slate-50 hover:bg-slate-100 border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-xs">⛵</span>
+                          <span className="text-xs font-bold text-slate-900 truncate">Capt. Ramesh</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 block truncate">Mumbai Sassoon Docks</span>
+                        <span className="text-[9px] font-mono text-blue-700 font-semibold block truncate">MH-01-MM-8492</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleSelectQuickSkipper('IND-TN-04-MM-3105')}
+                        className={`p-2 sm:p-2.5 rounded-xl border text-left transition-all ${
+                          signInIdentifier === 'IND-TN-04-MM-3105'
+                            ? 'bg-blue-50/80 border-blue-500 shadow-2xs ring-1 ring-blue-500'
+                            : 'bg-slate-50 hover:bg-slate-100 border-slate-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className="text-xs">⚓</span>
+                          <span className="text-xs font-bold text-slate-900 truncate">Capt. Selvam</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 block truncate">Rameswaram Jetty</span>
+                        <span className="text-[9px] font-mono text-blue-700 font-semibold block truncate">TN-04-MM-3105</span>
+                      </button>
+                    </div>
+                  </div>
+
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
                       {t.auth.vessel_id_label}
@@ -332,13 +357,21 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                     <div className="relative">
                       <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
                       <input
-                        type="password"
+                        type={showSignInPassword ? 'text' : 'password'}
                         required
                         value={signInPassword}
                         onChange={(e) => setSignInPassword(e.target.value)}
                         placeholder={t.auth.password_placeholder}
-                        className="w-full h-9 pl-9 pr-3 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
+                        className="w-full h-9 pl-9 pr-10 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowSignInPassword(!showSignInPassword)}
+                        className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                        title={showSignInPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showSignInPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
 
@@ -349,7 +382,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-10 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer mt-1"
+                    className="w-full h-10 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer mt-1"
                   >
                     <span>{loading ? t.auth.authenticating : t.auth.sign_in_btn}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -357,7 +390,7 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                 </form>
               )}
 
-              {/* Register Form */}
+              {/* ── REGISTER FORM ── */}
               {activeTab === 'register' && (
                 <form onSubmit={handleRegister} className="space-y-3">
                   <div>
@@ -427,10 +460,13 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                         <option value="Mumbai (Sassoon Docks)">Mumbai (Sassoon Docks), Maharashtra</option>
                         <option value="Mirkarwada Harbor, Ratnagiri">Mirkarwada Harbor, Ratnagiri, Maharashtra</option>
                         <option value="Veraval Fishing Harbor">Veraval Fishing Harbor, Gujarat</option>
+                        <option value="Porbandar Fishing Harbor">Porbandar Fishing Harbor, Gujarat</option>
                         <option value="Rameswaram Fishing Jetty">Rameswaram Fishing Jetty, Tamil Nadu</option>
                         <option value="Kasimedu Fishing Harbor, Chennai">Kasimedu Fishing Harbor, Chennai, Tamil Nadu</option>
                         <option value="Kochi Thoppumpady Harbor">Kochi Thoppumpady Harbor, Kerala</option>
+                        <option value="Mangalore Old Port">Mangalore Old Port, Karnataka</option>
                         <option value="Visakhapatnam Harbor">Visakhapatnam Harbor, Andhra Pradesh</option>
+                        <option value="Paradip Fishing Harbor">Paradip Fishing Harbor, Odisha</option>
                       </select>
                     </div>
                   </div>
@@ -442,20 +478,28 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
                     <div className="relative">
                       <KeyRound className="w-4 h-4 text-slate-400 absolute left-3 top-2.5 pointer-events-none" />
                       <input
-                        type="password"
+                        type={showRegPassword ? 'text' : 'password'}
                         required
                         value={regPassword}
                         onChange={(e) => setRegPassword(e.target.value)}
-                        placeholder={t.auth.password_placeholder}
-                        className="w-full h-9 pl-9 pr-3 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
+                        placeholder="Minimum 8 characters password"
+                        className="w-full h-9 pl-9 pr-10 rounded-lg bg-white border border-slate-300 text-slate-900 text-xs placeholder-slate-400 focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-colors"
                       />
+                      <button
+                        type="button"
+                        onClick={() => setShowRegPassword(!showRegPassword)}
+                        className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 focus:outline-none"
+                        title={showRegPassword ? 'Hide password' : 'Show password'}
+                      >
+                        {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-10 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer mt-1"
+                    className="w-full h-10 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-xs sm:text-sm shadow-xs transition-colors flex items-center justify-center gap-2 cursor-pointer mt-1"
                   >
                     <span>{loading ? t.auth.authenticating : t.auth.register_btn}</span>
                     <ArrowRight className="w-4 h-4" />
@@ -464,11 +508,73 @@ export const AuthLanding: React.FC<AuthLandingProps> = ({
               )}
             </div>
           </div>
+
+          {/* ── Left Column: Platform Capabilities & Hero (Desktop Left, Mobile Beneath) ── */}
+          <div className="order-2 lg:order-1 lg:col-span-6 space-y-3.5 sm:space-y-4">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold leading-none">
+              <span className="w-2 h-2 rounded-full bg-blue-600 shrink-0"></span>
+              <span>{t.auth.mopsw_badge}</span>
+            </div>
+
+            <h1 className="text-xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+              {t.auth.welcome_title}
+            </h1>
+
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-xl">
+              {t.auth.welcome_subtitle}
+            </p>
+
+            {/* Feature Cards matching Dashboard styling */}
+            <div className="space-y-2.5 sm:space-y-3 pt-1">
+              <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0 mt-0.5">
+                  <Compass className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-xs sm:text-sm text-slate-900">
+                    {t.auth.feature_agents_title}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed break-words">
+                    {t.auth.feature_agents_desc}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 shrink-0 mt-0.5">
+                  <Waves className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-xs sm:text-sm text-slate-900">
+                    {t.auth.feature_satellite_title}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed break-words">
+                    {t.auth.feature_satellite_desc}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 sm:p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 shrink-0 mt-0.5">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-bold text-xs sm:text-sm text-slate-900">
+                    {t.auth.feature_imbl_title}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-0.5 leading-relaxed break-words">
+                    {t.auth.feature_imbl_desc}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </main>
 
-      {/* Footer Bar matching platform footer */}
-      <footer className="bg-white border-t border-slate-200 py-3 px-4 sm:px-6 text-xs text-slate-500">
+      {/* ── Footer Bar ── */}
+      <footer className="bg-white border-t border-slate-200 py-3 px-4 sm:px-6 text-xs text-slate-500 mt-auto">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
           <span>{t.auth.footer_left}</span>
           <span>{t.auth.footer_right}</span>

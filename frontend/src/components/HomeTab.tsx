@@ -28,6 +28,7 @@ interface HomeTabProps {
   onRefresh: () => void;
   onOpenLocationModal?: () => void;
   onDetectGPS?: () => void;
+  activeAdvisory?: string;
 }
 
 
@@ -46,6 +47,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
   onRefresh,
   onOpenLocationModal,
   onDetectGPS,
+  activeAdvisory,
 }) => {
   const t = getFishermanTranslation(language);
 
@@ -157,6 +159,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({
               lastUpdated={lastUpdated}
               language={language}
               onRetry={onRefresh}
+              activeAdvisory={activeAdvisory}
             />
           </section>
 

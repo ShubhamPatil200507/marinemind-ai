@@ -26,10 +26,12 @@ export const API_BASE = resolveApiBase();
 
 export function getAuthToken(): string | null {
   try {
-    const userStr = localStorage.getItem('marinemind_user');
+    const token = sessionStorage.getItem('marinemind_token') || localStorage.getItem('marinemind_token');
+    if (token) return token;
+    const userStr = sessionStorage.getItem('marinemind_user') || localStorage.getItem('marinemind_user');
     if (userStr) {
       const u = JSON.parse(userStr);
-      return u.token || localStorage.getItem('marinemind_token') || null;
+      return u.token || null;
     }
   } catch {}
   return null;
@@ -38,6 +40,8 @@ export function getAuthToken(): string | null {
 function handleAuthStatus(res: Response) {
   if (res.status === 401 && typeof window !== 'undefined') {
     try {
+      sessionStorage.removeItem('marinemind_user');
+      sessionStorage.removeItem('marinemind_token');
       localStorage.removeItem('marinemind_user');
       localStorage.removeItem('marinemind_token');
       window.dispatchEvent(new CustomEvent('marinemind:auth-expired'));

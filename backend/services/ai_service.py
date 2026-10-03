@@ -50,6 +50,12 @@ class LocalMarineReasoner:
             why_bullets.append(f"Vessel trajectory approaches {near_zone} with {dist_b:.1f} km safety buffer remaining (< 5.0 km limit).")
             why_bullets.append("International maritime regulations and naval jurisdiction mandate minimum 5 km perimeter clearance.")
             why_bullets.append("Alter heading 270° westward into authorized Indian EEZ artisanal waters.")
+        elif risk_lvl == "CRITICAL" or weather.cyclone_alert or any(k in (weather.port_signal or "").upper() for k in ["IV", "V", "VI", "VII", "VIII", "IX", "X", "DANGER"]):
+            action = f"STAY ASHORE — CRITICAL ADVISORY: {risk.recommendation}"
+            why_bullets.append(f"Official Government / IMD coastal advisory indicates hazardous marine conditions ({weather.port_signal or 'Port Danger Signal'}).")
+            why_bullets.append(f"Composite marine risk index stands at {risk_score}/100 (CRITICAL Risk).")
+            why_bullets.append("All deep-sea fishing, offshore voyages, and artisanal operations must be suspended.")
+            why_bullets.append("Maintain continuous radio watch on VHF Channel 16 and check local port office.")
         elif risk_lvl == "HIGH" or wave_h >= 2.5 or wind_kmh >= 35.0:
             action = f"NO-GO ADVISORY: Hazardous sea conditions off {port_name}. Suspend small craft operations."
             why_bullets.append(f"Significant wave height ({wave_h}m) exceeds safe small-craft operational threshold (2.0m).")

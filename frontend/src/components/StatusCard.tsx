@@ -14,6 +14,7 @@ interface StatusCardProps {
   lastUpdated?: string;
   language: string;
   onRetry?: () => void;
+  activeAdvisory?: string;
 }
 
 export function StatusCard({
@@ -23,6 +24,7 @@ export function StatusCard({
   lastUpdated,
   language,
   onRetry,
+  activeAdvisory,
 }: StatusCardProps) {
   const t = getFishermanTranslation(language);
   const normalizedLevel: RiskLevel = (
@@ -131,6 +133,21 @@ export function StatusCard({
             {config.desc}
           </p>
         </div>
+
+        {/* Authoritative Coastal Advisory Match */}
+        {activeAdvisory && (
+          <div className="p-3 bg-white/95 rounded-xl border border-amber-300 shadow-2xs flex items-start gap-2.5">
+            <span className="text-base shrink-0">📢</span>
+            <div className="min-w-0">
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-800 block leading-tight">
+                Official Coastal Advisory Match
+              </span>
+              <p className="text-xs sm:text-sm font-bold text-slate-900 leading-snug mt-0.5">
+                {activeAdvisory}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Data Unavailable / Reconnecting Banner */}
         {dataStatus === 'UNAVAILABLE' && (
