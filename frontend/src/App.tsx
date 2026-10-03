@@ -99,11 +99,18 @@ export function App() {
   const [activeTab, setActiveTab] = useState<TabId>('home');
 
   // ── Vessel location ───────────────────────────────────────────────────────
-  const [vesselLocation, setVesselLocation] = useState({
-    latitude: 18.922,
-    longitude: 72.8347,
-    name: 'Mumbai Sassoon Docks',
-    heading_deg: 245
+  const [vesselLocation, setVesselLocation] = useState(() => {
+    try {
+      const saved = localStorage.getItem('marinemind_location');
+      return saved ? JSON.parse(saved) : {
+        latitude: 18.922,
+        longitude: 72.8347,
+        name: 'Mumbai Sassoon Docks',
+        heading_deg: 245
+      };
+    } catch {
+      return { latitude: 18.922, longitude: 72.8347, name: 'Mumbai Sassoon Docks', heading_deg: 245 };
+    }
   });
 
   // ── Marine data state ─────────────────────────────────────────────────────
@@ -164,7 +171,46 @@ export function App() {
     }
   }, [vesselLocation.latitude, vesselLocation.longitude]);
 
-  useEffect(() => { loadData(); }, []);
+  // ── Detect Live Hardware GPS ───────────────────────────────────────────────
+  const handleDetectGPS = useCallback(() => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your device browser.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = parseFloat(pos.coords.latitude.toFixed(4));
+        const lon = parseFloat(pos.coords.longitude.toFixed(4));
+        const acc = Math.round(pos.coords.accuracy);
+        const newLoc = {
+          latitude: lat,
+          longitude: lon,
+          name: `Live Device GPS (±${acc}m)`,
+          heading_deg: 245
+        };
+        setVesselLocation(newLoc);
+        setMapFocus({ latitude: lat, longitude: lon, zoom: 12 });
+        try { localStorage.setItem('marinemind_location', JSON.stringify(newLoc)); } catch {}
+        loadData(lat, lon);
+      },
+      (err) => {
+        console.warn('GPS detection failed or permission denied:', err);
+        // Fall back to saved/default location
+        loadData();
+      },
+      { timeout: 8000, enableHighAccuracy: true }
+    );
+  }, [loadData]);
+
+  // On mount: Auto-detect GPS if first visit, or load saved location
+  useEffect(() => {
+    const hasSavedLocation = !!localStorage.getItem('marinemind_location');
+    if (!hasSavedLocation && navigator.geolocation) {
+      handleDetectGPS();
+    } else {
+      loadData();
+    }
+  }, []);
 
   // ── Update vessel location ────────────────────────────────────────────────
   const handleUpdateLocation = async (loc: { latitude: number; longitude: number; name?: string; heading_deg?: number }) => {
@@ -176,8 +222,10 @@ export function App() {
     };
     setVesselLocation(newLoc);
     setMapFocus({ latitude: loc.latitude, longitude: loc.longitude, zoom: 11 });
+    try { localStorage.setItem('marinemind_location', JSON.stringify(newLoc)); } catch {}
     await loadData(loc.latitude, loc.longitude);
   };
+
 
   // ── Chat / AI query handler ───────────────────────────────────────────────
   const handleSendMessage = async (query: string): Promise<ChatResponse> => {
@@ -296,6 +344,7 @@ export function App() {
               onSendQuickMessage={handleQuickMessage}
               onRefresh={() => loadData()}
               onOpenLocationModal={() => setIsLocationModalOpen(true)}
+              onDetectGPS={handleDetectGPS}
             />
           )}
 
