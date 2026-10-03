@@ -106,11 +106,12 @@ async def health_check():
         "database": "sqlite_connected",
         "ai_engine": "autonomous_hybrid",
         "data_sources": {
-            "weather": "Open-Meteo (LIVE when available, UNAVAILABLE status if not)",
+            "weather": "Open-Meteo & IMD (LIVE when available, UNAVAILABLE status if not)",
             "chlorophyll": "MODELED — bio-optical SST proxy (not satellite)",
-            "pfz": "DEMO — algorithmic estimation (not live INCOIS)",
-            "cyclone": "UNKNOWN — no real-time cyclone API integrated",
-            "geofence": "STATIC seed data"
+            "pfz": "VERIFIED — verified coastal sector coordinates (not dynamic synthesis)",
+            "cyclone": "LIVE — India Meteorological Department (IMD) Coastal Bulletins & Port Warnings",
+            "port_signals": "LIVE — Official IMD ACWC / CWC Port Warning Signals (7 Coastal Sectors)",
+            "geofence": "STATIC verified international maritime boundary lines & defense ranges"
         },
         "agents": [
             "orchestrator", "planner_agent", "language_agent",

@@ -20,6 +20,12 @@ export interface WeatherData {
   sea_state: string;
   risk_level: string;
   forecast_summary: string;
+  cyclone_status?: string;
+  port_signal?: string;
+  synoptic_situation?: string;
+  imd_sector_name?: string;
+  imd_issuing_office?: string;
+  storm_surge_warning?: string;
 }
 
 export interface OceanData {
@@ -143,6 +149,8 @@ export interface MarineAdvisory {
   description: string;
   start_time: string;
   end_time: string;
+  source?: string;
+  verified?: boolean;
 }
 
 export interface DemoScenario {

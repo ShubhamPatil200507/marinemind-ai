@@ -1,7 +1,7 @@
 // frontend/src/components/AdvancedDetails.tsx
 // Technical telemetry and model provenance disclosures (Level 4: Fisherman-First)
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Cpu, Database, ShieldCheck } from 'lucide-react';
+import { ChevronDown, ChevronUp, Cpu, Database, ShieldCheck, Radio } from 'lucide-react';
 import type { WeatherData, PFZZone } from '../types/marine';
 import { getFishermanTranslation } from '../services/fishermanI18n';
 
@@ -88,6 +88,44 @@ export const AdvancedDetails: React.FC<AdvancedDetailsProps> = ({
               </strong>
             </div>
           </div>
+
+          {/* Official IMD Government Coastal Bulletin */}
+          {(weather.port_signal || weather.imd_issuing_office || weather.synoptic_situation) && (
+            <div className="space-y-2 p-3.5 rounded-xl bg-blue-50/60 border border-blue-200">
+              <div className="flex items-center justify-between text-blue-950 font-bold text-xs">
+                <div className="flex items-center gap-2">
+                  <Radio className="w-3.5 h-3.5 text-blue-700" />
+                  <span>IMD Official Coastal Weather Bulletin</span>
+                </div>
+                <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-bold">
+                  {weather.imd_sector_name || 'Coastal Sector'}
+                </span>
+              </div>
+              <div className="text-[11px] text-slate-700 space-y-1 font-medium">
+                <div>
+                  <span className="text-slate-500 font-semibold">Issuing Office: </span>
+                  <span className="text-slate-900 font-bold">{weather.imd_issuing_office || 'India Meteorological Department'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 font-semibold">Port Warning Signal: </span>
+                  <span className={`font-bold ${weather.port_signal && !weather.port_signal.includes('NIL') ? 'text-amber-700' : 'text-emerald-700'}`}>
+                    {weather.port_signal || 'NIL AT ALL PORTS'}
+                  </span>
+                </div>
+                {weather.synoptic_situation && weather.synoptic_situation !== 'NIL' && (
+                  <div>
+                    <span className="text-slate-500 font-semibold">Synoptic Situation: </span>
+                    <span className="text-slate-800">{weather.synoptic_situation}</span>
+                  </div>
+                )}
+                {weather.storm_surge_warning && weather.storm_surge_warning !== 'NIL' && (
+                  <div className="p-2 bg-amber-50 border border-amber-200 rounded text-amber-900 font-semibold text-[10px]">
+                    ⚠️ Ocean Currents / Tidal Alert: {weather.storm_surge_warning}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Model & Provenance Disclosure */}
           <div className="space-y-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200">

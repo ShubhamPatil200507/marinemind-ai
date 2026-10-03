@@ -148,7 +148,7 @@ export function App() {
         fetchNearbyPFZ(activeLat, activeLon),
         fetchGeofences(),
         fetchDemoRoutes(),
-        fetchAlerts()
+        fetchAlerts(activeLat, activeLon)
       ]);
       setWeather(w);
       setPfzZones(pfz);

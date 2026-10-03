@@ -80,24 +80,30 @@ def calculate_marine_risk(
         data_gaps.append("Weather telemetry source unavailable — baseline estimates utilized")
 
     cyclone_status = getattr(weather, 'cyclone_status', None)
+    port_sig = getattr(weather, 'port_signal', None) or ""
+
     if cyclone_status == CycloneStatus.ACTIVE_CYCLONE:
         cyclone_component = 100.0
-        cyclone_label = "ACTIVE CYCLONE WARNING"
+        cyclone_label = f"ACTIVE CYCLONE WARNING ({port_sig})" if port_sig else "ACTIVE CYCLONE WARNING"
     elif cyclone_status == CycloneStatus.WARNING:
         cyclone_component = 80.0
-        cyclone_label = "Cyclone Warning Issued"
+        cyclone_label = f"IMD Cyclone Warning: {port_sig}" if port_sig else "IMD Cyclone Warning Issued"
     elif cyclone_status == CycloneStatus.WATCH:
-        cyclone_component = 50.0
-        cyclone_label = "Cyclone Watch Active"
+        if "SIGNAL NUMBER" in port_sig.upper() or "CAUTIONARY" in port_sig.upper():
+            cyclone_component = 55.0
+            cyclone_label = f"IMD Harbor Warning: {port_sig}"
+        else:
+            cyclone_component = 25.0
+            cyclone_label = "IMD Advisory: Upper Air Cyclonic Circulation (Ports Clear)"
     elif cyclone_status == CycloneStatus.UNKNOWN:
         # Source unavailable — add conservative score + flag as gap
         cyclone_component = 10.0
-        cyclone_label = "Cyclone Status: UNKNOWN (No live source — check IMD)"
-        data_gaps.append("Cyclone advisory source unavailable — verify at imd.gov.in")
+        cyclone_label = "Cyclone Status: UNKNOWN (IMD unreachable — check port office)"
+        data_gaps.append("Cyclone advisory source temporarily unavailable — verify at imd.gov.in")
     else:
         # NO_ACTIVE_ALERT
         cyclone_component = 0.0
-        cyclone_label = "No Active Cyclone Alert"
+        cyclone_label = "IMD Bulletin: Normal (No Cyclone Alert / All Ports Clear)"
 
     # 5. Visibility Risk Component (0 - 100)
     if "poor" in weather.visibility.lower():

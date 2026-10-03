@@ -72,6 +72,12 @@ class WeatherData(BaseModel):
     sea_state: str = 'Moderate'
     risk_level: str = 'Moderate'
     forecast_summary: str = 'Calm sea conditions until mid-day; wave swell increasing in the afternoon.'
+    # IMD Official Marine Data
+    port_signal: Optional[str] = None
+    synoptic_situation: Optional[str] = None
+    imd_sector_name: Optional[str] = None
+    imd_issuing_office: Optional[str] = None
+    storm_surge_warning: Optional[str] = None
     # Provenance metadata
     provenance: DataProvenance = Field(
         default_factory=lambda: DataProvenance(source='Unknown', status=DataStatus.UNKNOWN)

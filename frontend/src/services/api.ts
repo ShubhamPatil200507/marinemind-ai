@@ -298,9 +298,12 @@ export async function fetchDemoRoutes(): Promise<RouteRecommendation> {
   }
 }
 
-export async function fetchAlerts(): Promise<MarineAdvisory[]> {
+export async function fetchAlerts(lat?: number, lon?: number): Promise<MarineAdvisory[]> {
   try {
-    const res = await fetch(`${API_BASE}/alerts`);
+    const url = (lat !== undefined && lon !== undefined)
+      ? `${API_BASE}/alerts?lat=${lat}&lon=${lon}`
+      : `${API_BASE}/alerts`;
+    const res = await fetch(url);
     if (!res.ok) throw new Error('API error');
     return await res.json();
   } catch {

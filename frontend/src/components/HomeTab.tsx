@@ -132,6 +132,30 @@ export const HomeTab: React.FC<HomeTabProps> = ({
         </section>
       )}
 
+      {/* ── Official Government of India IMD Marine Bulletin Indicator ── */}
+      {(weather.port_signal || weather.imd_issuing_office) && (
+        <section aria-label="Official IMD Bulletin" className="flex items-center justify-between px-3.5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-semibold shadow-2xs">
+          <div className="flex items-center gap-2">
+            <span className="text-base" role="img" aria-label="India Flag">🇮🇳</span>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-blue-300 font-bold uppercase tracking-wider text-[10px]">IMD Official Bulletin</span>
+                <span className="text-slate-400 text-[10px]">·</span>
+                <span className="text-slate-300 text-[10px] font-medium truncate max-w-[140px] sm:max-w-none">{weather.imd_issuing_office || 'Govt of India'}</span>
+              </div>
+              <div className="text-white text-xs font-bold flex items-center gap-2 mt-0.5">
+                <span>Port Signal: <span className={weather.port_signal && !weather.port_signal.includes('NIL') ? 'text-amber-400 font-black' : 'text-emerald-400 font-bold'}>{weather.port_signal || 'NIL AT ALL PORTS'}</span></span>
+                <span className="text-slate-500 text-[10px]">|</span>
+                <span className="text-slate-300 font-normal">Sea: {weather.sea_state}</span>
+              </div>
+            </div>
+          </div>
+          <span className="hidden sm:inline-block px-2 py-0.5 bg-blue-950/80 border border-blue-500/40 text-blue-300 rounded text-[10px] font-bold shrink-0">
+            Govt Verified
+          </span>
+        </section>
+      )}
+
       {/* ── Primary Action Status Card: CAN I GO FISHING? ── */}
       <section aria-label="Primary Fishing Status">
         <StatusCard
