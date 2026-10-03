@@ -99,21 +99,26 @@ export function StatusCard({
       {/* Top authoritative colored accent stripe */}
       <div className={`h-2 w-full ${config.accentBar}`} />
 
-      <div className="p-5 sm:p-6 space-y-4">
+      <div className="p-3.5 sm:p-6 space-y-3 sm:space-y-4">
         {/* Main Verdict & Visual Icon */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <div
-            className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white shadow-xs border border-black/5 flex items-center justify-center shrink-0 ${config.iconColor}`}
+            className={`w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-white shadow-xs border border-black/5 flex items-center justify-center shrink-0 ${config.iconColor}`}
           >
-            <Icon className="w-8 h-8 sm:w-9 sm:h-9" strokeWidth={2.4} />
+            <Icon className="w-7 h-7 sm:w-9 sm:h-9" strokeWidth={2.4} />
           </div>
 
           <div className="min-w-0 flex-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-0.5">
-              {t.status.safety_verdict}
-            </span>
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+                {t.status.safety_verdict}
+              </span>
+              <span className="text-[10px] font-mono font-bold px-1.5 py-0.2 rounded bg-black/5 text-slate-600">
+                {riskScore}/100
+              </span>
+            </div>
             <h2
-              className={`text-xl sm:text-2xl font-black tracking-tight leading-none text-slate-900`}
+              className="text-lg sm:text-2xl font-black tracking-tight leading-tight text-slate-900"
             >
               {config.title}
             </h2>
@@ -121,8 +126,8 @@ export function StatusCard({
         </div>
 
         {/* Actionable Plain-Language Advice */}
-        <div className="p-3.5 bg-white/90 rounded-xl border border-black/5 shadow-2xs">
-          <p className="text-sm sm:text-base font-semibold text-slate-800 leading-snug">
+        <div className="p-3 sm:p-3.5 bg-white/95 rounded-xl border border-black/5 shadow-2xs">
+          <p className="text-xs sm:text-base font-semibold text-slate-800 leading-snug">
             {config.desc}
           </p>
         </div>

@@ -377,12 +377,12 @@ export function App() {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 overflow-hidden">
+    <div className="flex flex-col h-[100dvh] min-h-[100dvh] bg-slate-50 overflow-hidden">
       {/* ── Offline-first maritime banner for deep-sea fishing ─────────── */}
       <OfflineBanner isOffline={!isOnline} isCachedData={dataStatus === 'CACHED'} />
 
       {/* ── Main content area (scrollable) ─────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto pb-16">
+      <main className={`flex-1 overflow-y-auto ${activeTab === 'ask' ? 'pb-16 flex flex-col min-h-0' : 'pb-24 sm:pb-20'}`}>
         <ErrorBoundary>
           {/* HOME TAB */}
           {activeTab === 'home' && (
@@ -441,7 +441,7 @@ export function App() {
 
           {/* ASK TAB (AI Copilot + Map) */}
           {activeTab === 'ask' && (
-            <div className="flex flex-col h-full min-h-[calc(100vh-4rem)]">
+            <div className="flex flex-col flex-1 min-h-0 h-full">
               <AICopilot
                 onSendMessage={handleSendMessage}
                 currentResponse={currentChatResponse}

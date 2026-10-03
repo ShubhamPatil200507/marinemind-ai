@@ -43,39 +43,39 @@ export function ConditionCards({ weather, language }: ConditionCardsProps) {
 
   return (
     <div className="space-y-2.5">
-      {/* ── PRIMARY CARDS: Waves & Wind (Dominant hierarchy for fishermen) ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      {/* ── PRIMARY CARDS: Waves & Wind (Side-by-side on mobile, dominant hierarchy) ── */}
+      <div className="grid grid-cols-2 gap-2 sm:gap-3">
         {/* WAVES CARD */}
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 shadow-2xs hover:border-blue-400 transition-colors">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                <Waves className="w-4 h-4" />
+        <div className="bg-white rounded-xl sm:rounded-2xl border-2 border-slate-200 p-3 sm:p-4 shadow-2xs hover:border-blue-400 transition-colors">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <Waves className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
                 {t.conditions.waves}
               </span>
             </div>
             <span
-              className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${waveStatus.color}`}
+              className={`text-[9px] sm:text-xs font-bold px-1.5 sm:px-2.5 py-0.5 rounded-full border truncate max-w-[70px] sm:max-w-none ${waveStatus.color}`}
             >
               {waveStatus.label}
             </span>
           </div>
 
           <div className="flex items-baseline justify-between mt-1">
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            <div className="flex items-baseline gap-0.5 sm:gap-1">
+              <span className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
                 {waveHeight.toFixed(1)}
               </span>
-              <span className="text-sm font-bold text-slate-500">{t.conditions.meters}</span>
+              <span className="text-xs sm:text-sm font-bold text-slate-500">{t.conditions.meters}</span>
             </div>
 
             <div className="text-right">
-              <span className="text-[11px] text-slate-400 font-medium block">
+              <span className="text-[9px] sm:text-[11px] text-slate-400 font-medium block">
                 {t.conditions.wave_period}
               </span>
-              <strong className="text-xs font-bold text-slate-700">
+              <strong className="text-[10px] sm:text-xs font-bold text-slate-700">
                 {weather.wave_period_s ? `${weather.wave_period_s.toFixed(1)}s` : '7.0s'}
               </strong>
             </div>
@@ -83,40 +83,37 @@ export function ConditionCards({ weather, language }: ConditionCardsProps) {
         </div>
 
         {/* WIND CARD */}
-        <div className="bg-white rounded-2xl border-2 border-slate-200 p-4 shadow-2xs hover:border-blue-400 transition-colors">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0">
-                <Wind className="w-4 h-4" />
+        <div className="bg-white rounded-xl sm:rounded-2xl border-2 border-slate-200 p-3 sm:p-4 shadow-2xs hover:border-blue-400 transition-colors">
+          <div className="flex items-center justify-between mb-1.5 sm:mb-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center shrink-0">
+                <Wind className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-500">
                 {t.conditions.wind}
               </span>
             </div>
             <span
-              className={`text-xs font-bold px-2.5 py-0.5 rounded-full border ${windStatus.color}`}
+              className={`text-[9px] sm:text-xs font-bold px-1.5 sm:px-2.5 py-0.5 rounded-full border truncate max-w-[70px] sm:max-w-none ${windStatus.color}`}
             >
               {windStatus.label}
             </span>
           </div>
 
           <div className="flex items-baseline justify-between mt-1">
-            <div className="flex items-baseline gap-1">
-              <span className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+            <div className="flex items-baseline gap-0.5 sm:gap-1">
+              <span className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
                 {Math.round(windKmh)}
               </span>
-              <span className="text-sm font-bold text-slate-500">{t.conditions.kmh}</span>
-              <span className="text-xs text-slate-400 ml-1">
-                ({(weather.wind_speed_knots ?? windKmh / 1.852).toFixed(1)} {t.conditions.knots})
-              </span>
+              <span className="text-xs sm:text-sm font-bold text-slate-500">{t.conditions.kmh}</span>
             </div>
 
             <div className="text-right">
-              <span className="text-[11px] text-slate-400 font-medium block">
+              <span className="text-[9px] sm:text-[11px] text-slate-400 font-medium block">
                 {t.conditions.wind_gust}
               </span>
-              <strong className="text-xs font-bold text-slate-700">
-                {weather.wind_gust_kmh ? `${Math.round(weather.wind_gust_kmh)} km/h` : '—'}
+              <strong className="text-[10px] sm:text-xs font-bold text-slate-700">
+                {weather.wind_gust_kmh ? `${Math.round(weather.wind_gust_kmh)}k` : '—'}
               </strong>
             </div>
           </div>

@@ -505,7 +505,7 @@ export const MarineMap: React.FC<MarineMapProps> = ({
       </div>
 
       {/* Recenter & Location Controls */}
-      <div className="absolute bottom-3 left-3 z-20 flex flex-wrap items-center gap-1.5 sm:gap-2 max-w-[calc(100%-20px)]">
+      <div className="absolute bottom-3 left-3 z-20 flex flex-wrap items-center gap-1.5 sm:gap-2 max-w-[calc(100%-80px)]">
         <button
           type="button"
           onClick={() => {

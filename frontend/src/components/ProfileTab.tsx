@@ -27,19 +27,19 @@ export const ProfileTab: React.FC<ProfileTabProps> = ({
   const t = getFishermanTranslation(language);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-6">
+    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-3.5 sm:py-5 space-y-3.5 sm:space-y-6">
       {/* ── Header ── */}
-      <header className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+      <header className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs">
+        <h1 className="text-lg sm:text-2xl font-black text-slate-900 flex items-center gap-2">
           <User className="w-5 h-5 text-blue-600" />
           <span>{t.profile.title}</span>
         </h1>
       </header>
 
       {/* ── Responsive 2-Column Grid (1 Column on Mobile, 2 Columns on Laptop/Desktop) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-6 items-start">
         {/* Left Column: Skipper Profile & Language Selector (6 cols on lg) */}
-        <div className="lg:col-span-6 space-y-6">
+        <div className="lg:col-span-6 space-y-3.5 sm:space-y-6">
           {/* Skipper / Vessel Details Card */}
           <section
             aria-label="Skipper Details"

@@ -1,9 +1,7 @@
-// frontend/src/components/TripTab.tsx
-// 3-Step safe passage voyage planner for fishermen
 import React, { useState } from 'react';
 import {
   Navigation, CheckCircle2, AlertTriangle, ShieldCheck,
-  Compass, ShieldAlert, Waves, Check
+  Compass, ShieldAlert, Waves, Check, Map as MapIcon, List
 } from 'lucide-react';
 import type { PFZZone, WeatherData, RouteOption } from '../types/marine';
 import { getFishermanTranslation } from '../services/fishermanI18n';
@@ -34,6 +32,7 @@ export const TripTab: React.FC<TripTabProps> = ({
     initialZone || zones[0] || null
   );
   const [isCalculating, setIsCalculating] = useState(false);
+  const [mobileView, setMobileView] = useState<'plan' | 'map'>('plan');
 
   const handleSelectZone = (zone: PFZZone) => {
     setActiveZone(zone);
@@ -44,6 +43,7 @@ export const TripTab: React.FC<TripTabProps> = ({
     setIsCalculating(true);
     try {
       await onPlanRoute(activeZone);
+      setMobileView('map');
     } finally {
       setIsCalculating(false);
     }
@@ -56,66 +56,100 @@ export const TripTab: React.FC<TripTabProps> = ({
   const currentStep = routes.length > 0 ? 3 : activeZone ? 2 : 1;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 space-y-5">
-      {/* ── Header ── */}
-      <header className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
-        <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
-          <Navigation className="w-5 h-5 text-blue-600" />
-          <span>{t.trip.title}</span>
-        </h1>
-        <p className="text-xs text-slate-500 font-medium mt-0.5">
-          {t.trip.subtitle}
-        </p>
+    <div className="max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 py-3.5 sm:py-5 space-y-3.5 sm:space-y-5">
+      {/* ── Header with Mobile View Switcher ── */}
+      <header className="bg-white p-3.5 sm:p-5 rounded-xl sm:rounded-2xl border border-slate-200/90 shadow-2xs">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+              <Navigation className="w-5 h-5 text-blue-600" />
+              <span>{t.trip.title}</span>
+            </h1>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              {t.trip.subtitle}
+            </p>
+          </div>
+
+          {/* Mobile-only Segmented View Switcher: Plan vs Map */}
+          {mapElement && (
+            <div className="flex lg:hidden bg-slate-100 p-1 rounded-xl border border-slate-200 shrink-0">
+              <button
+                type="button"
+                onClick={() => setMobileView('plan')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  mobileView === 'plan'
+                    ? 'bg-white text-blue-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <List className="w-3.5 h-3.5" />
+                <span>Plan</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileView('map')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  mobileView === 'map'
+                    ? 'bg-white text-blue-700 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                <MapIcon className="w-3.5 h-3.5" />
+                <span>Route</span>
+              </button>
+            </div>
+          )}
+        </div>
 
         {/* ── 3-Step Visual Progress Stepper ── */}
-        <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-100">
+        <div className="grid grid-cols-3 gap-1.5 sm:gap-2 mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-slate-100">
           <div
-            className={`flex items-center gap-1.5 p-2 rounded-xl text-xs font-bold transition-colors ${
+            className={`flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-colors ${
               currentStep >= 1
                 ? 'bg-blue-50 text-blue-800 border border-blue-200'
                 : 'bg-slate-50 text-slate-400'
             }`}
           >
             <span
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+              className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-black shrink-0 ${
                 currentStep > 1
                   ? 'bg-blue-600 text-white'
                   : 'bg-blue-200 text-blue-800'
               }`}
             >
-              {currentStep > 1 ? <Check className="w-3 h-3" /> : '1'}
+              {currentStep > 1 ? <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : '1'}
             </span>
             <span className="truncate">Destination</span>
           </div>
 
           <div
-            className={`flex items-center gap-1.5 p-2 rounded-xl text-xs font-bold transition-colors ${
+            className={`flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-colors ${
               currentStep >= 2
                 ? 'bg-blue-50 text-blue-800 border border-blue-200'
                 : 'bg-slate-50 text-slate-400'
             }`}
           >
             <span
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+              className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-black shrink-0 ${
                 currentStep > 2
                   ? 'bg-blue-600 text-white'
                   : 'bg-blue-200 text-blue-800'
               }`}
             >
-              {currentStep > 2 ? <Check className="w-3 h-3" /> : '2'}
+              {currentStep > 2 ? <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3" /> : '2'}
             </span>
-            <span className="truncate">Safety Check</span>
+            <span className="truncate">Safety</span>
           </div>
 
           <div
-            className={`flex items-center gap-1.5 p-2 rounded-xl text-xs font-bold transition-colors ${
+            className={`flex items-center gap-1 sm:gap-1.5 p-1.5 sm:p-2 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold transition-colors ${
               currentStep === 3
                 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                 : 'bg-slate-50 text-slate-400'
             }`}
           >
             <span
-              className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black shrink-0 ${
+              className={`w-4 h-4 sm:w-5 sm:h-5 rounded-full flex items-center justify-center text-[9px] sm:text-[10px] font-black shrink-0 ${
                 currentStep === 3
                   ? 'bg-emerald-600 text-white'
                   : 'bg-slate-200 text-slate-500'
@@ -129,19 +163,24 @@ export const TripTab: React.FC<TripTabProps> = ({
       </header>
 
       {/* ── Responsive Route Navigation Grid ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Interactive Route Map (7 cols on lg, 8 cols on xl) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-6 items-start">
+        {/* Route Map Section (Always on Desktop, conditional on Mobile) */}
         {mapElement && (
           <section
             aria-label="Route Navigation Map"
-            className="lg:col-span-7 xl:col-span-8 rounded-2xl overflow-hidden border-2 border-slate-200 shadow-2xs h-[320px] sm:h-[400px] lg:h-[620px] w-full relative bg-slate-100 lg:sticky lg:top-4"
+            className={`lg:col-span-7 xl:col-span-8 rounded-xl sm:rounded-2xl overflow-hidden border-2 border-slate-200/90 shadow-2xs w-full relative bg-slate-100 lg:sticky lg:top-4 ${
+              mobileView === 'map' ? 'block h-[calc(100dvh-190px)] min-h-[460px]' : 'hidden lg:block lg:h-[620px]'
+            }`}
           >
             {mapElement}
           </section>
         )}
 
-        {/* Right Column: Workflow Steps 1, 2, 3 (5 cols on lg, 4 cols on xl) */}
-        <div className={`space-y-4 ${mapElement ? 'lg:col-span-5 xl:col-span-4' : 'lg:col-span-12'}`}>
+        {/* Workflow Steps 1, 2, 3 (Always on Desktop, conditional on Mobile) */}
+        <div
+          className={`space-y-4 ${
+            mapElement ? 'lg:col-span-5 xl:col-span-4' : 'lg:col-span-12'
+          } ${mobileView === 'plan' ? 'block' : 'hidden lg:block'}`}>
           {/* STEP 1: Select Destination Zone */}
           <section
             aria-label="Step 1 Destination Selection"

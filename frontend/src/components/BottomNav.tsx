@@ -31,7 +31,7 @@ export function BottomNav({ activeTab, onTabChange, language }: BottomNavProps) 
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t-2 border-slate-200 flex items-stretch shadow-lg"
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white/98 backdrop-blur-lg border-t border-slate-200/90 flex items-stretch shadow-[0_-4px_20px_rgba(15,23,42,0.06)] pb-[max(0.35rem,env(safe-area-inset-bottom))] pt-1"
       aria-label="Marine navigation tabs"
     >
       {TABS.map(({ id, Icon }) => {
@@ -43,34 +43,32 @@ export function BottomNav({ activeTab, onTabChange, language }: BottomNavProps) 
             key={id}
             type="button"
             onClick={() => onTabChange(id)}
-            className={`flex-1 flex flex-col items-center justify-center min-h-[58px] py-1.5 transition-all select-none ${
+            className={`flex-1 flex flex-col items-center justify-center min-h-[54px] py-1 px-1 transition-all select-none active:scale-95 ${
               isActive
-                ? 'text-blue-600 bg-blue-50/40'
-                : 'text-slate-500 hover:text-slate-700 active:bg-slate-50'
+                ? 'text-blue-600'
+                : 'text-slate-500 hover:text-slate-800'
             }`}
             aria-label={label}
             aria-current={isActive ? 'page' : undefined}
           >
-            {/* Top active indicator line */}
-            <span
-              className={`w-8 h-1 rounded-full mb-1 transition-all ${
-                isActive ? 'bg-blue-600 scale-100' : 'bg-transparent scale-0'
-              }`}
-            />
-
-            <Icon
-              size={22}
-              strokeWidth={isActive ? 2.6 : 2}
-              className={`transition-transform ${isActive ? 'scale-110' : ''}`}
-            />
-
-            <span
-              className={`text-[11px] leading-tight mt-0.5 ${
-                isActive ? 'font-black text-blue-700' : 'font-semibold text-slate-500'
+            <div
+              className={`flex flex-col items-center justify-center w-full max-w-[64px] py-0.5 rounded-xl transition-all ${
+                isActive ? 'bg-blue-50/90 font-bold' : ''
               }`}
             >
-              {label}
-            </span>
+              <Icon
+                size={21}
+                strokeWidth={isActive ? 2.5 : 1.9}
+                className={`transition-transform duration-200 ${isActive ? 'scale-105 text-blue-600' : 'text-slate-500'}`}
+              />
+              <span
+                className={`text-[10px] sm:text-[11px] leading-tight mt-0.5 truncate tracking-tight ${
+                  isActive ? 'font-black text-blue-700' : 'font-medium text-slate-500'
+                }`}
+              >
+                {label}
+              </span>
+            </div>
           </button>
         );
       })}
