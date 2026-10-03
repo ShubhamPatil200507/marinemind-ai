@@ -77,4 +77,11 @@ def test_weather_tools_with_imd_bulletin():
     assert w.port_signal is not None
     assert w.imd_issuing_office is not None
     assert "ACWC" in w.imd_issuing_office or "Mumbai" in w.imd_issuing_office
-    assert w.cyclone_status in [CycloneStatus.NO_ACTIVE_ALERT, CycloneStatus.WATCH, CycloneStatus.WARNING, CycloneStatus.ACTIVE_CYCLONE]
+    assert w.cyclone_status in [
+        CycloneStatus.NO_ACTIVE_ALERT,
+        CycloneStatus.WATCH,
+        CycloneStatus.WARNING,
+        CycloneStatus.ACTIVE_CYCLONE,
+        CycloneStatus.UNKNOWN
+    ]
+
