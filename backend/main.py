@@ -49,6 +49,10 @@ if APP_ENV == "production":
         # In single-origin deployments where FastAPI serves the built frontend SPA directly,
         # same-origin requests do not require cross-origin allowance.
         _ALLOWED_ORIGINS = []
+    # If deployed on Render with an external URL, include it in allowed origins
+    render_external_url = os.environ.get("RENDER_EXTERNAL_URL", "").strip()
+    if render_external_url and render_external_url not in _ALLOWED_ORIGINS:
+        _ALLOWED_ORIGINS.append(render_external_url)
 else:
     # Development CORS: Allow configured origins + local dev servers
     _ALLOWED_ORIGINS = [o.strip() for o in (_FRONTEND_URL or "http://localhost:5173").split(",") if o.strip()]
@@ -145,6 +149,12 @@ if os.path.exists(assets_dir):
 
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
+    # Guard against returning HTML index for unmatched API endpoints
+    if full_path.startswith("api/"):
+        return JSONResponse(
+            status_code=404,
+            content={"error": "Not Found", "detail": f"API endpoint '/{full_path}' not found."}
+        )
     # Check if specific static file exists in dist
     file_path = os.path.join(frontend_dist, full_path)
     if full_path and os.path.isfile(file_path):

@@ -12,10 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     
     env:
-      JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-test-secret-minimum-32-characters-long' }}
-      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY || '' }}
+      JWT_SECRET: ci-test-secret-minimum-32-characters-long
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       FRONTEND_URL: http://localhost:5173
       DATABASE_URL: sqlite:///./test_marinemind.db
+      PYTHONPATH: .
     
     steps:
       - uses: actions/checkout@v4
