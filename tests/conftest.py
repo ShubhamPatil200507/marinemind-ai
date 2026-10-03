@@ -8,3 +8,9 @@ if not jwt_sec or len(jwt_sec) < 32:
 
 os.environ.setdefault("APP_ENV", "development")
 
+# Initialize SQLite database schema and seed default users for test environment
+from backend.models.database import init_db
+from backend.api import auth
+
+init_db()
+auth.seed_default_users()

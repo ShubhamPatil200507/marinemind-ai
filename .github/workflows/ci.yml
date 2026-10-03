@@ -41,23 +41,10 @@ jobs:
           mypy backend/ --ignore-missing-imports --no-error-summary || true
 
       - name: Run tests
-        id: pytest_run
-        continue-on-error: true
         run: |
           pip install pytest pytest-asyncio httpx
-          python -m pytest tests/ -v --tb=short > pytest_log.txt 2>&1 || true
-          cat pytest_log.txt
+          python -m pytest tests/ -v --tb=short
 
-      - name: Report test failure details if any
-        run: |
-          if grep -q "FAILED" pytest_log.txt || grep -q "ERROR" pytest_log.txt; then
-            echo "::error::Pytest encountered failures or errors!"
-            grep -E "FAILED|ERROR|RuntimeError|AssertionError|Exception|ModuleNotFoundError|ImportError" pytest_log.txt | while IFS= read -r line; do
-              echo "::error title=Pytest Error::$line"
-            done
-            exit 1
-          fi
-          echo "✅ All tests passed"
 
       - name: Security scan — check for hardcoded secrets
         run: |
